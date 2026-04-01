@@ -20,7 +20,6 @@ scroll_container = NodePath("MarginContainer/VBoxContainer2/ScrollContainer")
 [node name="Conversation" type="Node" parent="." unique_id=1788006802]
 script = ExtResource("1_d7v00")
 base_url = "https://api.moonshot.cn/v1/chat/completions"
-api_key = "sk-rFqKVPSq3rBKxpS2jaY2KlTdecpPV5h7FPeUD8JTNyLMzSw0"
 model = "moonshot-v1-32k"
 stream = true
 tool_mode = true

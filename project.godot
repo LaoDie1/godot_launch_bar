@@ -14,7 +14,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
-config/name="Godot工具条"
+config/name="Godot启动条"
 run/main_scene="uid://c2aqgf2ybo2sv"
 run/main_loop_type="Program"
 config/features=PackedStringArray("4.7", "Forward Plus")
@@ -46,6 +46,7 @@ enabled=PackedStringArray("res://addons/apprentice/plugin.cfg", "res://addons/ma
 [log]
 
 print_path=14
+display=31
 
 [rendering]
 

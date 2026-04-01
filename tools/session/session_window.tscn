@@ -13,7 +13,6 @@ script = ExtResource("1_807wb")
 unique_name_in_owner = true
 script = ExtResource("2_y8dgk")
 base_url = "https://api.moonshot.cn/v1/chat/completions"
-api_key = "sk-rFqKVPSq3rBKxpS2jaY2KlTdecpPV5h7FPeUD8JTNyLMzSw0"
 model = "moonshot-v1-32k"
 stream = true
 metadata/_custom_type_script = "uid://co4nsocgm00gg"
