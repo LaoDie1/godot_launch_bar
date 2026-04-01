@@ -37,14 +37,12 @@ func request(url: String, headers: PackedStringArray = PackedStringArray(), meth
 		responded_error.emit(http_client.get_status())
 		return
 
-	set_meta("headers", headers)
 	# 等待连接完成
 	while http_client.get_status() == HTTPClient.STATUS_CONNECTING or http_client.get_status() == HTTPClient.STATUS_RESOLVING:
 		http_client.poll()
 		#await get_tree().process_frame
 		OS.delay_msec(200)
 
-	print("连接后", headers)
 	if http_client.get_status() != HTTPClient.STATUS_CONNECTED:
 		push_error("Failed to connect to host. Status: ", http_client.get_status())
 		responded_error.emit(http_client.get_status())
