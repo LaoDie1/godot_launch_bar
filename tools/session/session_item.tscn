@@ -1,0 +1,171 @@
+[gd_scene format=3 uid="uid://d4ft7r0p0pskd"]
+
+[ext_resource type="Script" uid="uid://d0216ovvv0ov" path="res://tools/session/session_item.gd" id="1_57vqc"]
+[ext_resource type="Script" uid="uid://dbap0gqox0ty1" path="res://addons/markdownlabel/markdownlabel.gd" id="2_8v7uv"]
+[ext_resource type="FontFile" uid="uid://bij0yisa4qlxy" path="res://resource/Lucida Console.ttf" id="2_x52up"]
+[ext_resource type="Script" uid="uid://dcx7crs23nf4" path="res://addons/markdownlabel/header_formats/h1_format.gd" id="3_x52up"]
+[ext_resource type="Script" uid="uid://d0sin64i4v3op" path="res://addons/markdownlabel/header_formats/h2_format.gd" id="4_q1jmo"]
+[ext_resource type="Script" uid="uid://dlok0dv1tq2bf" path="res://addons/markdownlabel/header_formats/h3_format.gd" id="5_2pm0a"]
+[ext_resource type="Script" uid="uid://bayuh2vafablg" path="res://addons/markdownlabel/header_formats/h4_format.gd" id="6_ajyp3"]
+[ext_resource type="Script" uid="uid://dfr1w7u3jgni3" path="res://addons/markdownlabel/header_formats/h5_format.gd" id="7_dxr0q"]
+[ext_resource type="Script" uid="uid://bsi6dexoofpe6" path="res://addons/markdownlabel/header_formats/h6_format.gd" id="8_x3u7f"]
+
+[sub_resource type="DPITexture" id="DPITexture_x52up"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#e0e0e0\" d=\"M2 1a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1V3h9V2a1 1 0 0 0-1-1zm3 3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1zm1 2h7v7H6z\"/></svg>
+"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_57vqc"]
+content_margin_left = 16.0
+bg_color = Color(1, 1, 1, 0.09019608)
+border_width_left = 8
+border_color = Color(0.3254902, 0.09803922, 0.09803922, 0.6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jrlpy"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="Resource" id="Resource_y8y23"]
+resource_local_to_scene = true
+script = ExtResource("3_x52up")
+
+[sub_resource type="Resource" id="Resource_y33j6"]
+resource_local_to_scene = true
+script = ExtResource("4_q1jmo")
+
+[sub_resource type="Resource" id="Resource_2p5g7"]
+resource_local_to_scene = true
+script = ExtResource("5_2pm0a")
+
+[sub_resource type="Resource" id="Resource_ckt7e"]
+resource_local_to_scene = true
+script = ExtResource("6_ajyp3")
+
+[sub_resource type="Resource" id="Resource_6g7wt"]
+resource_local_to_scene = true
+script = ExtResource("7_dxr0q")
+
+[sub_resource type="Resource" id="Resource_toy43"]
+resource_local_to_scene = true
+script = ExtResource("8_x3u7f")
+
+[node name="SessionItem" type="MarginContainer" unique_id=442529117]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_57vqc")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1747559371]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="User" type="MarginContainer" parent="VBoxContainer" unique_id=764565013]
+layout_mode = 2
+theme_override_constants/margin_left = 48
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/User" unique_id=1414262463]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/User/VBoxContainer" unique_id=147055019]
+modulate = Color(1, 1, 1, 0.7372549)
+layout_mode = 2
+text = "User  "
+horizontal_alignment = 2
+
+[node name="UserMessageBox" type="TextEdit" parent="VBoxContainer/User/VBoxContainer" unique_id=751600029]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "提问内容"
+editable = false
+wrap_mode = 1
+scroll_fit_content_height = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/User/VBoxContainer" unique_id=2113946410]
+layout_mode = 2
+
+[node name="CopyUserMessageButton" type="Button" parent="VBoxContainer/User/VBoxContainer/HBoxContainer" unique_id=1399122160]
+modulate = Color(1, 1, 1, 0.63529414)
+layout_mode = 2
+focus_mode = 0
+icon = SubResource("DPITexture_x52up")
+
+[node name="Assistant" type="MarginContainer" parent="VBoxContainer" unique_id=136334005]
+layout_mode = 2
+theme_override_constants/margin_right = 48
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Assistant" unique_id=665697472]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="VBoxContainer/Assistant/VBoxContainer" unique_id=2069946708]
+modulate = Color(1, 1, 1, 0.7372549)
+layout_mode = 2
+text = "  Assistant"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Assistant/VBoxContainer" unique_id=1027571232]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="FoldButton" type="Button" parent="VBoxContainer/Assistant/VBoxContainer/VBoxContainer" unique_id=80917547]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 0.5686275)
+toggle_mode = true
+button_pressed = true
+text = " (思考内容)"
+alignment = 0
+
+[node name="Prompt" type="RichTextLabel" parent="VBoxContainer/Assistant/VBoxContainer/VBoxContainer" unique_id=1429353329]
+unique_name_in_owner = true
+clip_contents = false
+layout_mode = 2
+focus_mode = 2
+theme_override_colors/default_color = Color(1, 1, 1, 0.5137255)
+theme_override_styles/normal = SubResource("StyleBoxFlat_57vqc")
+text = "思考中..."
+fit_content = true
+context_menu_enabled = true
+selection_enabled = true
+
+[node name="AssistantMessageBox" type="RichTextLabel" parent="VBoxContainer/Assistant/VBoxContainer" unique_id=1582552011]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 0
+focus_mode = 2
+theme_override_colors/default_color = Color(1, 1, 1, 0.8784314)
+theme_override_constants/line_separation = 4
+theme_override_fonts/normal_font = ExtResource("2_x52up")
+theme_override_styles/normal = SubResource("StyleBoxFlat_jrlpy")
+bbcode_enabled = true
+fit_content = true
+context_menu_enabled = true
+selection_enabled = true
+deselect_on_focus_loss_enabled = false
+script = ExtResource("2_8v7uv")
+h1 = SubResource("Resource_y8y23")
+h2 = SubResource("Resource_y33j6")
+h3 = SubResource("Resource_2p5g7")
+h4 = SubResource("Resource_ckt7e")
+h5 = SubResource("Resource_6g7wt")
+h6 = SubResource("Resource_toy43")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Assistant/VBoxContainer" unique_id=128006613]
+layout_mode = 2
+
+[node name="CopyAssistantMessageButton" type="Button" parent="VBoxContainer/Assistant/VBoxContainer/HBoxContainer" unique_id=2115212421]
+modulate = Color(1, 1, 1, 0.63529414)
+layout_mode = 2
+focus_mode = 0
+icon = SubResource("DPITexture_x52up")
+
+[connection signal="pressed" from="VBoxContainer/User/VBoxContainer/HBoxContainer/CopyUserMessageButton" to="." method="copy_user_message"]
+[connection signal="toggled" from="VBoxContainer/Assistant/VBoxContainer/VBoxContainer/FoldButton" to="." method="_on_fold_button_toggled"]
+[connection signal="pressed" from="VBoxContainer/Assistant/VBoxContainer/HBoxContainer/CopyAssistantMessageButton" to="." method="copy_assistant_message"]
