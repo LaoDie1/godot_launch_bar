@@ -28,7 +28,8 @@ var root_menu: PopupMenu:
 		_register_menu(-1, "/", root_menu)
 
 
-func init_item(data: Dictionary):
+## 初始化菜单
+func init_item(data: Variant):
 	root_menu.clear(true)
 	_current_id = -1
 	_path_to_menu_node_dict.clear()

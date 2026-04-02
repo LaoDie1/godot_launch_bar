@@ -27,8 +27,8 @@ func _ready() -> void:
 				self.grab_focus()
 				send_text_box.grab_focus()
 	)
-	
-	Global.config.bind_node(self, "session_window_size", null, "size")
+	Global.config.bind_node(self, "session/window_size", null, "size")
+	Global.config.bind_node(conversation, "session/api_key", "", "api_key")
 	
 	# 会话列表
 	conversation_messages_file.bind_node(conversation, "session_history_messages", null, "messages")

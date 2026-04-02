@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://cea745i7c8dix" path="res://main/function_node/input_text_box.gd" id="3_3wy1v"]
 [ext_resource type="Script" uid="uid://davl4worsql4i" path="res://main/function_node/program_buttons_container.gd" id="4_c651c"]
 [ext_resource type="Script" uid="uid://dwsno5yktiao8" path="res://addons/apprentice/src/node/control/drag_move_control.gd" id="5_3wy1v"]
+[ext_resource type="PackedScene" uid="uid://bki05jo1nukoj" path="res://main/config_window/config_window.tscn" id="6_kfbq2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3wy1v"]
 content_margin_left = 0.0
@@ -55,6 +56,7 @@ icon = ExtResource("2_c651c")
 menu = NodePath("../IndicatorPopupMenu")
 
 [node name="IndicatorPopupMenu" type="PopupMenu" parent="." unique_id=1838953515]
+unique_name_in_owner = true
 oversampling_override = 1.0
 title = "任务栏菜单"
 
@@ -104,6 +106,9 @@ theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 script = ExtResource("4_c651c")
 
+[node name="ConfigWindow" parent="." unique_id=726063505 instance=ExtResource("6_kfbq2")]
+unique_name_in_owner = true
+visible = false
+
 [connection signal="moved" from="DragMoveControl" to="." method="_on_drag_move_control_moved"]
 [connection signal="pressed" from="StatusIndicator" to="." method="_on_status_indicator_pressed"]
-[connection signal="id_pressed" from="IndicatorPopupMenu" to="." method="_on_indicator_popup_menu_id_pressed"]

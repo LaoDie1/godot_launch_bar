@@ -15,26 +15,37 @@ class _Scanner:
 	}
 	
 	static func method(path: String, list: Array, recursive:bool, type):
+		
 		var directory := DirAccess.open(path)
 		if directory == null:
 			printerr("err: ", path)
 			return
-		directory.list_dir_begin()
-		# 遍历文件
 		
+		# 遍历文件
 		var dir_list := []
 		var file_list := []
-		var file := ""
-		file = directory.get_next()
-		while file != "":
-			# 目录
-			if directory.current_is_dir() and not file.begins_with("."):
-				dir_list.append( path.path_join(file) )
-			# 文件
-			elif not directory.current_is_dir() and not file.begins_with("."):
-				file_list.append( path.path_join(file) )
-			
+		if path.begins_with("res://"):
+			# 导出后仍可以扫描到
+			var cur_list : PackedStringArray = ResourceLoader.list_directory(path)
+			for item in cur_list:
+				if item.ends_with("/"):
+					dir_list.append(path.path_join(item))
+				else:
+					file_list.append(path.path_join(item))
+		else:
+			directory.list_dir_begin()
+			var file := ""
 			file = directory.get_next()
+			while file != "":
+				# 目录
+				if directory.current_is_dir() and not file.begins_with("."):
+					dir_list.append( path.path_join(file) )
+				# 文件
+				elif not directory.current_is_dir() and not file.begins_with("."):
+					file_list.append( path.path_join(file) )
+				
+				file = directory.get_next()
+		
 		# 添加
 		if type == DIRECTORY:
 			list.append_array(dir_list)
@@ -365,7 +376,6 @@ static func scan_directory(dir: String, recursive:= false) -> Array[String]:
 ##[br]
 ##[br][b]注意：[/b]Android 不可用，禁止扫描目录文件
 static func scan_file(dir: String, recursive:= false) -> Array[String]:
-	dir = get_real_path(dir)
 	assert(DirAccess.dir_exists_absolute(dir), "没有这个路径")
 	var list : Array[String] = []
 	_Scanner.method(dir, list, recursive, _Scanner.FILE)

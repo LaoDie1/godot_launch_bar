@@ -7,6 +7,8 @@
 #============================================================
 class_name Log
 
+const LOG_DISPLAY_PATH = "log/display"
+const LOG_PRINT_PATH = "log/print_path"
 
 ## 日志类型
 enum Level { 

@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://bki05jo1nukoj"]
+
+[ext_resource type="Script" uid="uid://bxtpwtral3vsg" path="res://main/config_window/config_window.gd" id="1_w441p"]
+
+[node name="ConfigWindow" type="Window" unique_id=726063505]
+oversampling_override = 1.0
+title = "设置"
+initial_position = 2
+size = Vector2i(600, 400)
+script = ExtResource("1_w441p")
+
+[node name="Panel" type="Panel" parent="." unique_id=63455217]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Control" type="Control" parent="." unique_id=5651620]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Control" unique_id=1490462812]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 8
+
+[node name="HSplitContainer" type="HSplitContainer" parent="Control/MarginContainer" unique_id=1105275119]
+layout_mode = 2
+split_offsets = PackedInt32Array(150)
+split_offset = 150
+
+[node name="TypeTree" type="Tree" parent="Control/MarginContainer/HSplitContainer" unique_id=238800474]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ValueTreeContainer" type="MarginContainer" parent="Control/MarginContainer/HSplitContainer" unique_id=725633205]
+unique_name_in_owner = true
+layout_mode = 2
+
+[connection signal="item_selected" from="Control/MarginContainer/HSplitContainer/TypeTree" to="." method="_on_type_tree_item_selected"]

@@ -46,7 +46,6 @@ enabled=PackedStringArray("res://addons/apprentice/plugin.cfg", "res://addons/ma
 [log]
 
 print_path=14
-display=31
 
 [rendering]
 

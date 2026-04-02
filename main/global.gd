@@ -12,6 +12,7 @@ var input_text_box: InputTextBox
 
 func _enter_tree() -> void:
 	Engine.set_meta("GLOBAL", self)
+	
 	get_tree().node_added.connect(
 		func(node):
 			if node is Control:
@@ -28,15 +29,28 @@ func _enter_tree() -> void:
 				else:
 					input_text_box.release_focus()
 	, Object.CONNECT_DEFERRED)
-	config.bind_node(get_tree().root, "window_pos", null, "position")
 	
-	# 退出保存
-	get_tree().root.tree_exiting.connect(config.save)
+	config.bind_node(get_tree().root, "program/window_pos", null, "position")
 	
-	# 自动保存
-	const AUTO_SAVE_TIME = 60 * 10
+	# 自动保存 按分钟保存
+	var minue : int = Global.config.get_value("program/auto_save_interval", 5)
+	Global.config.set_value("program/auto_save_interval", minue)
 	var auto_save_timer := Timer.new()
-	auto_save_timer.wait_time = AUTO_SAVE_TIME
+	auto_save_timer.wait_time = 60 * minue
 	auto_save_timer.autostart = true
-	auto_save_timer.timeout.connect(config.save)
+	auto_save_timer.timeout.connect(
+		func():
+			Main.show_prompt("自动保存数据")
+			config.save()
+	)
 	add_child(auto_save_timer)
+	Global.config.value_changed.connect(
+		func(key, _pre, curr):
+			if key == "program/auto_save_interval":
+				auto_save_timer.wait_time = curr
+	)
+
+func _exit_tree() -> void:
+	var save_status = config.save()
+	Log.print_json(config.get_data(), "\t")
+	Log.debug("退出程序保存数据", save_status)

@@ -23,15 +23,16 @@ func _init():
 			object._instance = object
 	
 	# 日志等级
-	var log_display_value = ProjectSettings.get_setting(ApprenticePlugin.LOG_DISPLAY_PATH)
+	Log
+	var log_display_value = ProjectSettings.get_setting(Log.LOG_DISPLAY_PATH)
 	if log_display_value:
 		Log.display = log_display_value
 	else:
-		ProjectSettings.set_setting(ApprenticePlugin.LOG_DISPLAY_PATH, Log.DefaultValue.DISPLAY)
+		ProjectSettings.set_setting(Log.LOG_DISPLAY_PATH, Log.DefaultValue.DISPLAY)
 	# 日志打印
-	var log_print_value = ProjectSettings.get_setting(ApprenticePlugin.LOG_PRINT_PATH)
+	var log_print_value = ProjectSettings.get_setting(Log.LOG_PRINT_PATH)
 	if log_print_value:
 		Log.print_path = log_print_value
 	else:
-		ProjectSettings.set_setting(ApprenticePlugin.LOG_PRINT_PATH, Log.DefaultValue.PRINT_PATH)
+		ProjectSettings.set_setting(Log.LOG_PRINT_PATH, Log.DefaultValue.PRINT_PATH)
 	

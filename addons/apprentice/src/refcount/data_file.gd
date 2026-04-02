@@ -104,6 +104,13 @@ func set_value(key, value):
 		var previous = data[key]
 		if typeof(previous) != typeof(value) or previous != value:
 			data[key] = value
+			if _bind_node_data_dict.has(key):
+				var item : Array = _bind_node_data_dict[key]
+				var node : Node = item[0]
+				var property : String = item[1]
+				var set_condition : Callable = item[3]
+				if (set_condition.is_null() or set_condition.call(value)) and (typeof(node.get(property)) != typeof(value) or node.get(property) != value):
+					node.set(property, value)
 			value_changed.emit(key, null, value)
 	else:
 		data[key] = value
@@ -141,13 +148,17 @@ func set_value_by_object(object: Object, exclude_propertys: Array = []):
 			set_value(p_name, object[p_name])
 
 
-var _bind_node_data_list: Array = []
+var _bind_node_data_dict: Dictionary = {}
 
 ## 绑定这个节点，自动更新属性。他会自动绑定不同类型的 [Control] 节点的属性和信号。
 func bind_node(node: Node, key, default_value = null, property : String = "", set_condition : Callable = Callable()) -> void:
 	if property:
 		_set_node_value(node, property, key, default_value)
-		_bind_node_data_list.append([node, property, key, set_condition])
+		_bind_node_data_dict[key] = [node, property, key, set_condition]
+		if node is Window:
+			node.close_requested.connect(
+				func(): set_value(key, node.get(property))
+			)
 	else:
 		if node is Control:
 			var value_changed_callback : Callable = func(v):
@@ -180,10 +191,9 @@ func _set_node_value(node: Node, property: String, key, default = null):
 	if has_value(key) or default:
 		node.set(property, get_value(key, default))
 
-## 保存数据
-func save():
-	# 处理 Windows 中绑定的数据，全更新
-	for item in _bind_node_data_list:
+## 更新所有有关于绑定的节点的数据内容，从绑定的节点上获取数据，记录到当前数据缓存中
+func update_data_by_bind_nodes() -> void:
+	for item in _bind_node_data_dict.values():
 		var node : Node = item[0]
 		var property : String = item[1]
 		var key = item[2]
@@ -193,13 +203,18 @@ func save():
 			set_value(key, v)
 		else:
 			set_value(key, v)
-	
+
+## 保存数据
+func save() -> bool:
+	update_data_by_bind_nodes()
 	make_dir_if_not_exists(file_path.get_base_dir())
 	match data_format:
 		BYTES:
 			return write_as_bytes(file_path, data)
 		STRING:
 			return write_as_str_var(file_path, data)
+	return false
+
 
 
 #============================================================
@@ -246,7 +261,7 @@ static func write_as_bytes(file_path: String, data) -> bool:
 	return false
 
 ## 写入字符串变量数据
-static func write_as_str_var(file_path: String, data):
+static func write_as_str_var(file_path: String, data) -> bool:
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
 	if file:
 		var text = var_to_str(data)

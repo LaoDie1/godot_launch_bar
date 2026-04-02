@@ -7,9 +7,6 @@
 class_name ApprenticePlugin
 extends EditorPlugin
 
-const LOG_DISPLAY_PATH = "log/display"
-const LOG_PRINT_PATH = "log/print_path"
-
 static var instance: ApprenticePlugin
 
 var SyncFile = preload("res://addons/apprentice/@plugin_func/sync_file.gd").new()
@@ -45,28 +42,28 @@ func _enter_tree() -> void:
 	
 	# 日志
 	ProjectSettings.add_property_info({
-		"name": LOG_DISPLAY_PATH,
+		"name": Log.LOG_DISPLAY_PATH,
 		"type": TYPE_INT,
 		"hint": PROPERTY_HINT_FLAGS,
 		"hint_string": ",".join(Log.Level.keys()),
 	})
-	ProjectSettings.set_initial_value(LOG_DISPLAY_PATH, Log.DefaultValue.DISPLAY)
-	if ProjectSettings.has_setting(LOG_DISPLAY_PATH):
-		ProjectSettings.set_setting(LOG_DISPLAY_PATH, ProjectSettings.get_setting(LOG_DISPLAY_PATH))
+	ProjectSettings.set_initial_value(Log.LOG_DISPLAY_PATH, Log.DefaultValue.DISPLAY)
+	if ProjectSettings.has_setting(Log.LOG_DISPLAY_PATH):
+		ProjectSettings.set_setting(Log.LOG_DISPLAY_PATH, ProjectSettings.get_setting(Log.LOG_DISPLAY_PATH))
 	else:
-		ProjectSettings.set_setting(LOG_DISPLAY_PATH, Log.DefaultValue.DISPLAY)
+		ProjectSettings.set_setting(Log.LOG_DISPLAY_PATH, Log.DefaultValue.DISPLAY)
 	
 	ProjectSettings.add_property_info({
-		"name": LOG_PRINT_PATH,
+		"name": Log.LOG_PRINT_PATH,
 		"type": TYPE_INT,
 		"hint": PROPERTY_HINT_FLAGS,
 		"hint_string": ",".join(Log.Level.keys()),
 	})
-	ProjectSettings.set_initial_value(LOG_PRINT_PATH, Log.DefaultValue.PRINT_PATH)
-	if ProjectSettings.has_setting(LOG_PRINT_PATH):
-		ProjectSettings.set_setting(LOG_PRINT_PATH, ProjectSettings.get_setting(LOG_PRINT_PATH))
+	ProjectSettings.set_initial_value(Log.LOG_PRINT_PATH, Log.DefaultValue.PRINT_PATH)
+	if ProjectSettings.has_setting(Log.LOG_PRINT_PATH):
+		ProjectSettings.set_setting(Log.LOG_PRINT_PATH, ProjectSettings.get_setting(Log.LOG_PRINT_PATH))
 	else:
-		ProjectSettings.set_setting(LOG_PRINT_PATH, Log.DefaultValue.PRINT_PATH)
+		ProjectSettings.set_setting(Log.LOG_PRINT_PATH, Log.DefaultValue.PRINT_PATH)
 
 
 func _exit_tree() -> void:

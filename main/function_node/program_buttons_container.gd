@@ -10,10 +10,10 @@ extends HFlowContainer
 var button_group := ButtonGroup.new()
 
 func _ready():
+	print("加载扩展工具: ")
 	var dir = "res://tools/"
 	var files = FileUtil.scan_file(dir, true).filter(func(file): return file.ends_with(".gd"))  # 你已有的扫描结果
-	
-	print("加载扩展按钮: ")
+	print("扫描到文件列表：", files)
 	var buttons : Array[BaseButton] = []
 	for file in files:
 		var script : GDScript = load_user_script(file)
