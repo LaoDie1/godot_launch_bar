@@ -21,4 +21,5 @@ func _init() -> void:
 	window = SPEECH_TO_TEXT_WINDOW.instantiate()
 
 func _pressed() -> void:
-	window.popup()
+	if window.is_inside_tree():
+		window.popup()

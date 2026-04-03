@@ -111,28 +111,37 @@ func send(message: String) -> void:
 	messages.push_back(message_data)
 	
 	# 数据列表
-	var temp_message : Array = []
+	var temp_messages : Array = []
 	if tool_mode:
 		# 工具模式.无上下文
-		temp_message.push_back({
+		temp_messages.push_back({
 			"role": Role.SYSTEM,
 			"content": tool_message,
 		})
-		temp_message.push_back(message_data)
-	else:
-		# 带有上下文
-		var last_role = ""
-		for item in messages.slice(-message_memory_limit * 2): #乘以2是代表两个消息是一次对话，一问一答。
-			if last_role != item["role"]:
-				last_role = item["role"]
-				temp_message.push_back({
-					"role": item["role"],
-					"content": item["content"],
-				})
+		temp_messages.push_back(message_data)
+	
+	# 带有上下文
+	var last_role = ""
+	var temp_list :Array = []
+	var count : int = 0
+	for idx in range(messages.size()-1, -1, -1):
+		var item = messages[idx]
+		if last_role != item["role"] and item["role"]:
+			last_role = item["role"]
+			temp_list.push_back({
+				"role": item["role"],
+				"content": item["content"],
+			})
+			count += 1
+		if idx == -1 or count == message_memory_limit * 2: #乘以2是代表两个消息是一次对话，一问一答。
+			break
+	temp_list.reverse()
+	temp_messages.append_array(temp_list)
+	
 	
 	# 发出时的数据
 	var body : Dictionary = {
-		"messages": temp_message,
+		"messages": temp_messages,
 		"model": model,
 		"stream": stream,
 	}

@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dy5iw3wd7qjjx" path="res://tools/speech_to_text/speech_to_text_window.gd" id="1_o8w06"]
 [ext_resource type="Script" uid="uid://64f5523qkfc" path="res://addons/apprentice/src/node/else/stream_request.gd" id="2_2c6s0"]
 [ext_resource type="Script" uid="uid://3sgdeoam0lq0" path="res://tools/speech_to_text/use_env_detector.gd" id="3_mgu0f"]
+[ext_resource type="Script" uid="uid://c18u2rphedqe7" path="res://addons/apprentice/src/node/control/simple_menu.gd" id="4_6n0be"]
 
 [node name="SpeechToText" type="Window" unique_id=1567067319]
 oversampling_override = 1.0
@@ -41,6 +42,7 @@ layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MarginContainer" unique_id=1338328833]
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
@@ -50,13 +52,25 @@ theme_override_constants/margin_bottom = 16
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="FilePathLabel" type="Label" parent="Control/MarginContainer/MarginContainer/VBoxContainer" unique_id=446045544]
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/MarginContainer/MarginContainer/VBoxContainer" unique_id=1448251220]
+layout_mode = 2
+
+[node name="SimpleMenu" type="MenuBar" parent="Control/MarginContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=151937503]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("4_6n0be")
+metadata/_custom_type_script = "uid://c18u2rphedqe7"
+
+[node name="FilePathLabel" type="Label" parent="Control/MarginContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=446045544]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.5921569)
 layout_mode = 2
+size_flags_horizontal = 10
 mouse_filter = 0
 text = "<文件路径>"
-clip_text = true
+
+[node name="HSeparator" type="HSeparator" parent="Control/MarginContainer/MarginContainer/VBoxContainer" unique_id=1853335456]
+layout_mode = 2
 
 [node name="ResultTextBox" type="TextEdit" parent="Control/MarginContainer/MarginContainer/VBoxContainer" unique_id=705459495]
 unique_name_in_owner = true

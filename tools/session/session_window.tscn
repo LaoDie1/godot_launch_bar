@@ -62,6 +62,7 @@ theme_override_constants/separation = 32
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VSplitContainer" unique_id=1983023866]
 layout_mode = 2
+theme_override_constants/separation = 16
 
 [node name="SendTextBox" type="TextEdit" parent="MarginContainer/VSplitContainer/VBoxContainer" unique_id=279022083]
 unique_name_in_owner = true
@@ -75,7 +76,7 @@ layout_mode = 2
 
 [node name="SendButton" type="Button" parent="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer" unique_id=967214992]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 36)
+custom_minimum_size = Vector2(80, 48)
 layout_mode = 2
 size_flags_horizontal = 10
 disabled = true

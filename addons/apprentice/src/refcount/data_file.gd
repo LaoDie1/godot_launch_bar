@@ -110,9 +110,9 @@ func set_value(key, value):
 				var object : Object = item[0]
 				if is_instance_valid(object):
 					var property : String = item[1]
-					var set_condition : Callable = item[3]
-					if (set_condition.is_null() or set_condition.call(value)) and (typeof(object.get(property)) != typeof(value) or object.get(property) != value):
-						object.set(property, value)
+					var handle_callback : Callable = item[3]
+					if (typeof(object.get(property)) != typeof(value) or object.get(property) != value):
+						object.set(property, handle_callback.call(get_value(key), value) if handle_callback.is_valid() else value)
 			# 更新绑定值的方法
 			if _binded_method_dict.has(key):
 				for callback: Callable in _binded_method_dict[key]:
@@ -157,7 +157,7 @@ func set_value_by_object(object: Object, exclude_propertys: Array = []):
 var _bind_node_data_dict: Dictionary = {}
 
 ## 绑定这个节点，自动更新属性。他会自动绑定不同类型的 [Control] 节点的属性和信号。
-func bind_object(object: Object, key, default_value = null, property : String = "", set_condition : Callable = Callable()) -> void:
+func bind_object(object: Object, key, default_value = null, property : String = "", handle_callback : Callable = Callable()) -> void:
 	if not object is Node and property.is_empty():
 		const MESSAGE = "如果绑定的对象不是 Node 类型，则需要传入要同步绑定修改的 property 参数"
 		push_error(MESSAGE)
@@ -170,7 +170,7 @@ func bind_object(object: Object, key, default_value = null, property : String = 
 	
 	if property:
 		_set_object_value(object, property, key, default_value)
-		_bind_node_data_dict[key] = [object, property, key, set_condition]
+		_bind_node_data_dict[key] = [object, property, key, handle_callback]
 		if object is Window:
 			object.close_requested.connect(
 				func(): set_value(key, object.get(property))
@@ -179,10 +179,7 @@ func bind_object(object: Object, key, default_value = null, property : String = 
 	# 自动绑定节点的信号
 	if object is Control and not property:
 		var value_changed_callback : Callable = func(v):
-			if set_condition.is_valid() and set_condition.call(v):
-				set_value(key, v)
-			else:
-				set_value(key, v)
+			set_value(key, handle_callback.call(get_value(key), v) if handle_callback.is_valid() else v)
 		# 绑定信号
 		if object is BaseButton:
 			_set_object_value(object, "button_pressed", key, default_value)
@@ -222,12 +219,9 @@ func update_data_by_bind_nodes() -> void:
 		var object : Object = item[0]
 		var property : String = item[1]
 		var key = item[2]
-		var set_condition : Callable = item[3]
+		var handle_callback : Callable = item[3]
 		var v : Variant = object.get(property)
-		if set_condition.is_valid() and set_condition.call(v):
-			set_value(key, v)
-		else:
-			set_value(key, v)
+		set_value(key, handle_callback.call(get_value(key), v) if handle_callback.is_valid() else v)
 
 ## 保存数据
 func save() -> bool:

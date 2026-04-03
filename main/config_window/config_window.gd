@@ -141,8 +141,7 @@ func create_value_item(key: String):
 	key_to_value_item_dict[key] = value_item
 
 func _ready() -> void:
-	Global.config.bind_object(self, "config_window_size", null, "size")
-	Global.config.bind_object(self, "config_window_pos", null, "position")
+	Global.config.bind_object(self, "config_window_size", null, "size", func(pre, new_value): return new_value if mode == Window.MODE_WINDOWED else pre)
 	
 	await visibility_changed
 	

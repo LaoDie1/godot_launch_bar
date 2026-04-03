@@ -35,9 +35,10 @@ func _enter_tree() -> void:
 
 var right_menu := MenuWrapper.new()
 func _ready() -> void:
-	if not WindowServer.create_program_single():
-		# 创建单例程序成功
-		pass
+	if not OS.has_feature("editor") and WindowServer.create_program_single():
+		# 如果存在已经启动的程序则退出
+		get_tree().quit()
+		return 
 	
 	# 绑定节点配置
 	Global.config.bind_object(%LaunchBarNameLabel, "program/launch_bar_name", "<启动条>", "text")

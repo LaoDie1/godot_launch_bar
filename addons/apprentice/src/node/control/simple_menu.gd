@@ -245,7 +245,7 @@ func add_menu_by_path(menu_path: String):
 ##    },
 ## })
 ## [/codeblock]
-func init_menu(data: Dictionary):
+func init_menu(data: Variant):
 	add_menu(data, "/")
 
 

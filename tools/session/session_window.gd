@@ -20,7 +20,7 @@ var conversation_messages_file := DataFile.instance("user://conversation_message
 
 
 func _ready() -> void:
-	Global.config.bind_object(self, "session/window_size", null, "size")
+	Global.config.bind_object(self, "session/window_size", null, "size", func(pre, new_value): return new_value if mode == Window.MODE_WINDOWED else pre)
 	Global.config.bind_object(conversation, "session/model", "", "model")
 	Global.config.bind_object(conversation, "session/base_url", "", "base_url")
 	Global.config.bind_object(conversation, "session/api_key", "", "api_key")
@@ -42,13 +42,15 @@ func _ready() -> void:
 	visibility_changed.connect(_scroll_down, Object.CONNECT_ONE_SHOT | Object.CONNECT_DEFERRED)
 	
 	# 来消息时，自动滚动到底部方便查看
-	var end_resp = func(_data):
+	var end_resp = func(_data, status: Error):
 		if not auto_scroll_timer.is_stopped():
 			auto_scroll_timer.stop()
 			message_scroll_container.scroll_vertical = int(message_scroll_container.get_v_scroll_bar().max_value)
-	conversation.responded_stream_end.connect(end_resp)
-	conversation.responded_message.connect(end_resp)
-	conversation.responded_error.connect(end_resp)
+		if status == OK:
+			last_session_item = null
+	conversation.responded_stream_end.connect(end_resp.bind(OK))
+	conversation.responded_message.connect(end_resp.bind(OK))
+	conversation.responded_error.connect(end_resp.bind(FAILED))
 	conversation.requested.connect(
 		func(__): auto_scroll_timer.start()
 	)
@@ -63,12 +65,14 @@ func _ready() -> void:
 	get_tree().create_timer(0.1).timeout.connect(_scroll_down)
 
 
+var last_session_item : Node
 func send_current_text() -> void:
 	var text : String = send_text_box.text.strip_edges()
 	if text:
-		var item = SESSION_ITEM.instantiate()
-		session_item_list.add_child(item)
-		item.bind_once_conversation(conversation)
+		if last_session_item == null:
+			last_session_item = SESSION_ITEM.instantiate()
+			session_item_list.add_child(last_session_item)
+		last_session_item.bind_once_conversation(conversation)
 		conversation.send(text)
 		get_tree().create_timer(0.1).timeout.connect(
 			func(): send_text_box.text = ""
@@ -85,7 +89,7 @@ func _scroll_down() -> void:
 func _on_send_text_box_gui_input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		# 按回车发送消息
-		if event.keycode == KEY_ENTER and not (event.is_command_or_control_pressed() or event.shift_pressed or event.alt_pressed):
+		if event.keycode == KEY_ENTER and event.pressed and not (event.is_command_or_control_pressed() or event.shift_pressed or event.alt_pressed):
 			send_current_text()
 
 

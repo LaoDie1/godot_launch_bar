@@ -7,6 +7,7 @@
 #============================================================
 extends Window
 
+@onready var simple_menu: SimpleMenu = %SimpleMenu
 @onready var file_path_label: Label = %FilePathLabel
 @onready var result_text_box: TextEdit = %ResultTextBox
 @onready var stream_req: StreamRequest = %StreamRequest
@@ -14,12 +15,22 @@ extends Window
 var python_server_pid: int 
 
 func _ready() -> void:
+	Global.config.bind_object(self, "speech_to_text/window_size", null, "size", func(pre, new_value): return new_value if mode == Window.MODE_WINDOWED else pre)
+	
 	# 绑定信号
 	stream_req.responded.connect(_on_stream_chunk)
 	stream_req.connected.connect(_on_connected)
 	stream_req.responded_error.connect(_on_error)
 	stream_req.connect_closed.connect(_on_closed)
 	stream_req.received_headers.connect(_on_stream_request_received_headers)
+	
+	simple_menu.init_menu({
+		"文件": [ "保存文件" ],
+	})
+	simple_menu.init_shortcut({
+		"/文件/保存文件": "ctrl+s",
+	})
+	simple_menu.menu_pressed.connect(_on_simple_menu_menu_pressed)
 	
 	await get_tree().create_timer(0.2).timeout
 	print("[ 开始检测使用环境 ]")
@@ -65,6 +76,7 @@ func start_transcribe(video_path: String):
 	print("  开始识别文件：%s" % video_path)
 	%FilePathLabel.text = video_path.get_file()
 	%FilePathLabel.tooltip_text = video_path
+	%FilePathLabel.set_meta("path", video_path)
 	_current_task_id = ""
 	
 	var url = "http://127.0.0.1:28666/transcribe?path=" + video_path.replace("\\", "/").uri_encode()
@@ -109,3 +121,19 @@ func _on_running_text_timer_timeout() -> void:
 	%RunningLabel.text = RUNNING_TEXT_LIST[_running_number % RUNNING_TEXT_LIST.size()]
 	_running_number += 1
 	%RunningLabel.modulate.a = 1.0
+
+
+var _last_save_dir: String = "res://"
+func _on_simple_menu_menu_pressed(_idx: int, menu_path: StringName):
+	match menu_path:
+		"/文件/保存文件":
+			pass
+			var path : String = %FilePathLabel.get_meta("path", "")
+			if path:
+				DisplayServer.file_dialog_show(
+					"保存文件", _last_save_dir, path.get_file().get_basename() + ".txt", false, DisplayServer.FILE_DIALOG_MODE_SAVE_FILE, ["*.txt;Text 文件"], 
+					func(status: bool, selected_paths: PackedStringArray, selected_filter_index: int):
+						_last_save_dir = selected_paths[0].get_base_dir()
+						var file : String = selected_paths[0]
+						FileUtil.write_as_string(file, %ResultTextBox.text)
+				)

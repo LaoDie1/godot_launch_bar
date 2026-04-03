@@ -14,7 +14,7 @@ extends Window
 
 
 func _enter_tree() -> void:
-	Global.config.bind_object(self, "translator/window_size", null, "size")
+	Global.config.bind_object(self, "translator/window_size", null, "size", func(pre, new_value): return new_value if mode == Window.MODE_WINDOWED else pre)
 	Global.config.bind_object(conversation, "translator/api_key", "", "api_key")
 	Global.config.bind_object(conversation, "translator/model", "", "model")
 	Global.config.bind_object(conversation, "translator/base_url", "", "base_url")
