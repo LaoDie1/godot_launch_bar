@@ -2,12 +2,17 @@
 
 [ext_resource type="Script" uid="uid://dy5iw3wd7qjjx" path="res://tools/speech_to_text/speech_to_text_window.gd" id="1_o8w06"]
 [ext_resource type="Script" uid="uid://64f5523qkfc" path="res://addons/apprentice/src/node/else/stream_request.gd" id="2_2c6s0"]
+[ext_resource type="Script" uid="uid://3sgdeoam0lq0" path="res://tools/speech_to_text/use_env_detector.gd" id="3_mgu0f"]
 
 [node name="SpeechToText" type="Window" unique_id=1567067319]
 oversampling_override = 1.0
 initial_position = 2
 size = Vector2i(700, 600)
 script = ExtResource("1_o8w06")
+
+[node name="UseEnvDetector" type="Node" parent="." unique_id=752418416]
+unique_name_in_owner = true
+script = ExtResource("3_mgu0f")
 
 [node name="StreamRequest" type="Node" parent="." unique_id=131717027]
 unique_name_in_owner = true
@@ -58,6 +63,9 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 placeholder_text = "将视频拖拽到此窗口进行识别"
+editable = false
+middle_mouse_paste_enabled = false
+wrap_mode = 1
 
 [node name="RunningLabel" type="Label" parent="Control/MarginContainer/MarginContainer/VBoxContainer" unique_id=1813356765]
 unique_name_in_owner = true

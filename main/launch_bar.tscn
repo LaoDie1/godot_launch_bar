@@ -89,7 +89,19 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 24
 
-[node name="LaunchBarNameLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1921204457]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1365712457]
+layout_mode = 2
+alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=1803725582]
+clip_contents = true
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+texture = ExtResource("3_x70cw")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LaunchBarNameLabel" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=1921204457]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.43137255)
 layout_mode = 2

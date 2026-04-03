@@ -41,7 +41,7 @@ func _ready() -> void:
 	
 	# 绑定节点配置
 	Global.config.bind_object(%LaunchBarNameLabel, "program/launch_bar_name", "<启动条>", "text")
-	Global.config.bind_object(%LaunchBarNameLabel, "program/show_launch_bar_name", true, "visible")
+	Global.config.bind_object(%LaunchBarNameLabel.get_parent(), "program/show_launch_bar_name", true, "visible")
 	Global.config.bind_object(get_tree().root, "program/window_pos", null, "position")
 	var background_style : StyleBoxFlat = %BackgroundPanel.get_theme_stylebox("panel")
 	Global.config.bind_object(background_style, "program/background_color", null, "bg_color")

@@ -232,3 +232,19 @@ Comment=Start Your Game on login
 			var file = FileAccess.open(desktop_path, FileAccess.WRITE)
 			file.store_string(desktop_content)
 			file.close()
+
+
+static func find_pids_by_port(port) -> Array:
+	var output = []
+	OS.execute("cmd", ["/c", 'netstat -ano | findstr ":28666"'], output)
+	var content : String = output[0]
+	content = content.replace("\r", "")
+	var list = content.split("\n")
+	var pids = []
+	for line: String in list:
+		if line != "":
+			var items : PackedStringArray = line.split("  ")
+			var pid : String = items[-1].strip_edges()
+			if items.size() > 0 and not pids.has(pid):
+				pids.append(pid)
+	return pids

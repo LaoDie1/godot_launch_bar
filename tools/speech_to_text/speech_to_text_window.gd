@@ -13,15 +13,6 @@ extends Window
 
 var python_server_pid: int 
 
-var _current_task_id : String:
-	set(v):
-		_current_task_id = v
-		if _current_task_id:
-			%RunningTextTimer.start()
-		else:
-			%RunningTextTimer.stop()
-			%RunningLabel.text = "(完成)"
-
 func _ready() -> void:
 	# 绑定信号
 	stream_req.responded.connect(_on_stream_chunk)
@@ -29,6 +20,12 @@ func _ready() -> void:
 	stream_req.responded_error.connect(_on_error)
 	stream_req.connect_closed.connect(_on_closed)
 	stream_req.received_headers.connect(_on_stream_request_received_headers)
+	
+	await get_tree().create_timer(0.2).timeout
+	print("[ 开始检测使用环境 ]")
+	await %UseEnvDetector.start_detection()
+	print("[ 检测完成 ]")
+	%UseEnvDetector.kill_port_28666_one_click()
 	
 	# 创建 python 服务器脚本
 	var python_script_path : String = FileUtil.get_real_path("./tools/speech_to_text/stream_transcribe.py")
@@ -53,20 +50,32 @@ func _exit_tree() -> void:
 	if python_server_pid != 0:
 		OS.kill(python_server_pid)
 
+
+var _current_task_id : String:
+	set(v):
+		_current_task_id = v
+		if _current_task_id:
+			%RunningTextTimer.start()
+		else:
+			%RunningTextTimer.stop()
+			%RunningLabel.text = "(完成)"
+
 # 开始请求
 func start_transcribe(video_path: String):
 	print("  开始识别文件：%s" % video_path)
 	%FilePathLabel.text = video_path.get_file()
 	%FilePathLabel.tooltip_text = video_path
 	_current_task_id = ""
-	var url = "http://127.0.0.1:28666/transcribe?path=" + video_path.replace("\\", "/")
+	
+	var url = "http://127.0.0.1:28666/transcribe?path=" + video_path.replace("\\", "/").uri_encode()
 	stream_req.request(url, PackedStringArray(), HTTPClient.METHOD_GET)
 	result_text_box.text = ""
 
 func stop() -> void:
-	stream_req.request("http://127.0.0.1:28666/stop?task_id=" + _current_task_id)
-	print("✅ 已打断Python识别")
-	_current_task_id = ""
+	if _current_task_id:
+		stream_req.request("http://127.0.0.1:28666/stop?task_id=" + _current_task_id)
+		print("  已打断Python识别")
+		_current_task_id = ""
 
 func _on_stream_request_received_headers(headers: Dictionary):
 	if headers.has("x-task-id"):
@@ -94,7 +103,7 @@ func _on_closed():
 	print("转写完成！")
 	_current_task_id = ""
 
-const RUNNING_TEXT_LIST = ["识别中", "识别中.", "识别中..", "识别中...", "识别中....", ]
+const RUNNING_TEXT_LIST = ["识别中", "识别中.", "识别中..", "识别中...", "识别中....", "识别中.....",]
 var _running_number: int = 0
 func _on_running_text_timer_timeout() -> void:
 	%RunningLabel.text = RUNNING_TEXT_LIST[_running_number % RUNNING_TEXT_LIST.size()]

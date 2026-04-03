@@ -11,7 +11,7 @@ func _get_tool_name() -> String:
 	return "音视频转文字"
 
 func _put_message(message: String):
-	pass
+	window.popup()
 
 func _get_order() -> int:
 	return 11

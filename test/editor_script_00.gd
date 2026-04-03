@@ -9,5 +9,7 @@ func _run() -> void:
 	#var video_picture = FFMpegUtil.get_video_cover_fast(r"C:\Users\z\Videos\其他\xv\X2Twitter.com_ctUSrTIWEhYejHiq_1920p.mp4")
 	#print(video_picture)
 	
-	print(FileUtil.find_program_path("python"))
+	
+	print(SystemUtil.find_pids_by_port("28666"))
+	
 	

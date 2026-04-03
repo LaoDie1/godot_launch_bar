@@ -74,7 +74,7 @@ func scan_load(dir: String) -> void:
 				func():
 					if window.visible:
 						# 窗口自动获得焦点
-						get_tree().create_timer(0.3).timeout.connect(window.grab_focus)
+						get_tree().create_timer(0.2).timeout.connect(window.grab_focus)
 			)
 			# INFO 再次点击使用时
 			button.entered.connect(Global.input_text_box.submit_message)
