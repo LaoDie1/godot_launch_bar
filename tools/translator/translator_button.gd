@@ -21,6 +21,9 @@ func _put_message(message: String):
 	window.translate(message)
 	window.popup()
 
+func _get_tooltip(_at_position: Vector2) -> String:
+	return "将你的内容翻译为其他文字"
+
 
 func _init() -> void:
 	const WINDOW_SCENE = preload("uid://4w5nkfvmfsud")

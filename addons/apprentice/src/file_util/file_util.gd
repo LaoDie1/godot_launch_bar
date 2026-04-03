@@ -172,19 +172,18 @@ static func load_image_by_buffer(body: PackedByteArray) -> Image:
 		push_error("读取图片数据失败：", error, "  ", error_string(error))
 	return null
 
-static func load_res(path: String):
-	if path.get_extension() in ["tres", "res", "tscn", "scn", "gd"]:
-		pass
-
 ## 文件是否存在
 static func file_exists(file_path: String) -> bool:
-	if not OS.has_feature("editor") and (file_path.begins_with("res://") or file_path.begins_with("user://")):
+	if not OS.has_feature("editor") and file_path.begins_with("res://"):
 		return ResourceLoader.exists(file_path)
 	else:
+		file_path = get_real_path(file_path)
 		return FileAccess.file_exists(file_path)
 
 ## 目录是否存在
 static func dir_exists(dir_path: String) -> bool:
+	if not OS.has_feature("editor"):
+		dir_path = get_real_path(dir_path)
 	return DirAccess.dir_exists_absolute(dir_path)
 
 
@@ -242,16 +241,15 @@ static func read_as_string(
 	file_path: String, 
 	decode: StringName = UTF_8,
 ) -> String:
-	if file_exists(file_path):
-		var file := FileAccess.open(file_path, FileAccess.READ)
-		if file:
-			match decode:
-				ASCII: return file.get_file_as_bytes(file_path).get_string_from_ascii()
-				UTF_8: return file.get_as_text()
-				UTF_16: return file.get_file_as_bytes(file_path).get_string_from_utf16()
-				UTF_32: return file.get_file_as_bytes(file_path).get_string_from_utf32()
-				WCHAR: return file.get_file_as_bytes(file_path).get_string_from_wchar()
-				_: assert(false, "错误的编码类型")
+	var file := FileAccess.open(file_path, FileAccess.READ)
+	if file:
+		match decode:
+			ASCII: return file.get_file_as_bytes(file_path).get_string_from_ascii()
+			UTF_8: return file.get_as_text()
+			UTF_16: return file.get_file_as_bytes(file_path).get_string_from_utf16()
+			UTF_32: return file.get_file_as_bytes(file_path).get_string_from_utf32()
+			WCHAR: return file.get_file_as_bytes(file_path).get_string_from_wchar()
+			_: assert(false, "错误的编码类型")
 	else:
 		printerr(file_path, "文件不存在")
 	return ""
@@ -366,7 +364,11 @@ static func read_as_str_var(file_path: String):
 
 ##  扫描目录
 static func scan_directory(dir: String, recursive:= false) -> Array[String]:
-	assert(DirAccess.dir_exists_absolute(dir), "没有这个路径")
+	if dir.is_relative_path():
+		dir = get_real_path(dir) # 转为真实完整路径
+	else:
+		dir = dir.simplify_path()
+	assert(DirAccess.dir_exists_absolute(dir), "没有这个路径 %s" % dir)
 	var list : Array[String] = []
 	_Scanner.method(dir, list, recursive, _Scanner.DIRECTORY)
 	return list
@@ -376,7 +378,11 @@ static func scan_directory(dir: String, recursive:= false) -> Array[String]:
 ##[br]
 ##[br][b]注意：[/b]Android 不可用，禁止扫描目录文件
 static func scan_file(dir: String, recursive:= false) -> Array[String]:
-	assert(DirAccess.dir_exists_absolute(dir), "没有这个路径")
+	if dir.is_relative_path():
+		dir = get_real_path(dir) # 转为真实完整路径
+	else:
+		dir = dir.simplify_path()
+	assert(DirAccess.dir_exists_absolute(dir), "没有这个路径 %s" % dir)
 	var list : Array[String] = []
 	_Scanner.method(dir, list, recursive, _Scanner.FILE)
 	return list
@@ -396,19 +402,21 @@ static func get_object_file(object: Object) -> String:
 
 ## 获取实际路径
 static func get_real_path(path: String) -> String:
-	if OS.has_feature("editor"):
-		# 编辑器中运行
-		return ProjectSettings.globalize_path(path)
-	else:
-		# 导出后运行
+	if OS.has_feature("editor"): # 编辑器中运行
+		if path.is_relative_path():
+			path = "res://".path_join(path)
+		return ProjectSettings.globalize_path(path.simplify_path())
+	else: # 导出后运行
 		if path.begins_with("res://"):
 			var relative_path : String = path.substr("res://".length())
-			return OS.get_executable_path().get_base_dir().path_join(relative_path)
+			return OS.get_executable_path().get_base_dir().path_join(relative_path).simplify_path()
 		elif path.begins_with("user://"):
-			var relative_path : String = path.substr("user://".length())
-			return OS.get_user_data_dir().path_join(relative_path)
+			#var relative_path : String = path.substr("user://".length())
+			#return OS.get_user_data_dir().path_join(relative_path)
+			return ProjectSettings.globalize_path(path.simplify_path())
 		elif path.is_relative_path():
-			return OS.get_executable_path().get_base_dir().path_join(path)
+			path = OS.get_executable_path().get_base_dir().path_join(path)
+			return ProjectSettings.globalize_path(path.simplify_path())
 		return path
 
 
@@ -433,6 +441,7 @@ static func save_resource(resource: Resource, path: String = "", flags: int = 0)
 ##[br]
 ##[br][code]return[/code] 如果不存在则进行创建并返回 [code]true[/code]，否则返回 [code]false[/code]
 static func make_dir_if_not_exists(dir_path: String) -> bool:
+	dir_path = get_real_path(dir_path)
 	if not DirAccess.dir_exists_absolute(dir_path):
 		DirAccess.make_dir_recursive_absolute(dir_path)
 		return true
@@ -615,8 +624,51 @@ enum SizeFlag {
 
 ## 获取文件大小
 static func get_file_size(path: String, size_flag: int) -> float:
-	var length = get_file_length(path)
+	var length = get_file_size_fast(path)
 	return (length / BYTE_QUANTITIES[size_flag])
+
+
+# 极速获取文件大小（不打开文件，调用系统API）
+# 返回：文件大小（字节），失败返回 -1
+static func get_file_size_fast(file_path: String) -> int:
+	var output = []
+	var exit_code = 0
+	var abs_path = get_real_path(file_path)
+	if OS.get_name() == "Windows":
+		# Windows：使用 dir 命令获取文件大小
+		# 注意：file_path 必须是绝对路径（或用 ProjectSettings.globalize_path 转）
+		exit_code = OS.execute("cmd.exe", ["/c", "dir", "/-c", abs_path], output)
+		
+		if exit_code == 0 and output.size() > 0:
+			# 解析 dir 输出，提取文件大小（Windows 中文/英文环境适配）
+			for line in output:
+				line = line.strip_edges()
+				if line.ends_with(abs_path.get_file()) or line.find(abs_path.get_file()) != -1:
+					# 提取数字部分（dir 输出格式："2025/04/03  10:00    10737418240  test.txt"）
+					var parts = line.split(" ", false)
+					for part in parts:
+						if part.is_valid_int():
+							return int(part)
+	else:
+		# macOS / Linux：使用 stat 命令获取文件大小
+		# stat -f%z 是 macOS，stat -c%s 是 Linux，做个兼容
+		var args = []
+		if OS.get_name() == "macOS":
+			args = ["-f%z", abs_path]
+		else:
+			args = ["-c%s", abs_path]
+		
+		exit_code = OS.execute("stat", args, output)
+		if exit_code == 0 and output.size() > 0:
+			return int(output[0].strip_edges())
+	
+	# 系统命令失败时，回退到原生方法（兜底）
+	var file = FileAccess.open(file_path, FileAccess.READ)
+	if file:
+		var size = file.get_length()
+		file.close()
+		return size
+	return -1
 
 ## 查找程序路径
 static func find_program_path_list(program_name: String) -> PackedStringArray:

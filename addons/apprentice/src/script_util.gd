@@ -612,3 +612,12 @@ static func get_script_class_structure() -> Dictionary:
 static func get_script_child_class_dict() -> Dictionary:
 	__init_script_class_structure__()
 	return __global_child_class_dict__
+
+## 是否继承自这个类
+static func is_extends_of(script: Script, parent_class: Script) -> bool:
+	var tmp_script : GDScript = script
+	while tmp_script:
+		tmp_script = script.get_base_script()
+		if tmp_script == parent_class:
+			return true
+	return false

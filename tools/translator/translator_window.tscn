@@ -77,6 +77,7 @@ wrap_mode = 1
 scroll_fit_content_height = true
 
 [node name="CopyButton" type="Button" parent="MarginContainer/VBoxContainer2/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=821400822 node_paths=PackedStringArray("target")]
+visible = false
 layout_mode = 2
 icon = SubResource("DPITexture_x52up")
 script = ExtResource("3_38y2x")

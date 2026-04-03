@@ -5,5 +5,11 @@ extends EditorScript
 func _run() -> void:
 	pass
 	
-	print( FileUtil.get_real_path("user://conversation_messages.data") )
+	#FFMpegUtil.ffmpeg_path = FileUtil.find_program_path("ffmpeg")
+	#var video_picture = FFMpegUtil.get_video_cover_fast(r"C:\Users\z\Videos\其他\xv\X2Twitter.com_ctUSrTIWEhYejHiq_1920p.mp4")
+	#print(video_picture)
 	
+	var logo = FileUtil.load_image("res://logo.png")
+	logo.resize(256, 256)
+	var result = FileUtil.save_image(logo, "res://logo.icns")
+	print(result)

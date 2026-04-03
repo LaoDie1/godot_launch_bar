@@ -19,7 +19,12 @@ run/main_scene="uid://c2aqgf2ybo2sv"
 run/main_loop_type="Program"
 config/features=PackedStringArray("4.7", "Forward Plus")
 run/low_processor_mode=true
+boot_splash/show_image=false
+boot_splash/stretch_mode=0
+boot_splash/use_filter=false
 config/icon="res://icon.svg"
+config/macos_native_icon="res://logo.icns"
+config/windows_native_icon="res://logo.ico"
 
 [autoload]
 
@@ -28,8 +33,8 @@ Global="*uid://dcab8nn0xnj21"
 
 [display]
 
-window/size/viewport_width=700
-window/size/viewport_height=200
+window/size/viewport_width=800
+window/size/viewport_height=300
 window/size/borderless=true
 window/size/always_on_top=true
 window/size/transparent=true
@@ -46,6 +51,7 @@ enabled=PackedStringArray("res://addons/apprentice/plugin.cfg", "res://addons/ma
 [log]
 
 print_path=14
+display=31
 
 [rendering]
 

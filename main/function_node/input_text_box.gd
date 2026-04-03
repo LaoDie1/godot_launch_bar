@@ -16,8 +16,12 @@ func _ready() -> void:
 func _unhandled_key_input(event) -> void:
 	if event is InputEventKey:
 		if event.keycode == KEY_ENTER and not (event.is_command_or_control_pressed() or event.shift_pressed or event.alt_pressed):
-			if text.strip_edges():
-				Program.set_main_visible(false)
-				submitted.emit(text.strip_edges())
-				clear()
-				clear_undo_history()
+			submit_message()
+
+## 直接提交启动条中的文本内容
+func submit_message():
+	if text.strip_edges():
+		Program.set_main_visible(false)
+		submitted.emit(text.strip_edges())
+		clear()
+		clear_undo_history()

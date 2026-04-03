@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://d0216ovvv0ov" path="res://tools/session/session_item.gd" id="1_57vqc"]
 [ext_resource type="Script" uid="uid://dbap0gqox0ty1" path="res://addons/markdownlabel/markdownlabel.gd" id="2_8v7uv"]
-[ext_resource type="FontFile" uid="uid://bij0yisa4qlxy" path="res://resource/Lucida Console.ttf" id="2_x52up"]
+[ext_resource type="FontFile" uid="uid://bij0yisa4qlxy" path="res://tools/session/Lucida Console.ttf" id="2_x52up"]
 [ext_resource type="Script" uid="uid://dcx7crs23nf4" path="res://addons/markdownlabel/header_formats/h1_format.gd" id="3_x52up"]
 [ext_resource type="Script" uid="uid://d0sin64i4v3op" path="res://addons/markdownlabel/header_formats/h2_format.gd" id="4_q1jmo"]
 [ext_resource type="Script" uid="uid://dlok0dv1tq2bf" path="res://addons/markdownlabel/header_formats/h3_format.gd" id="5_2pm0a"]
@@ -16,9 +16,12 @@ _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\">
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_57vqc"]
 content_margin_left = 16.0
-bg_color = Color(1, 1, 1, 0.09019608)
-border_width_left = 8
-border_color = Color(0.3254902, 0.09803922, 0.09803922, 0.6)
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.54296875, 0.54296875, 0.54296875, 0.09019608)
+border_width_left = 4
+border_color = Color(1, 1, 1, 0.3019608)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jrlpy"]
 content_margin_left = 4.0
@@ -83,7 +86,7 @@ horizontal_alignment = 2
 [node name="UserMessageBox" type="TextEdit" parent="VBoxContainer/User/VBoxContainer" unique_id=751600029]
 unique_name_in_owner = true
 layout_mode = 2
-placeholder_text = "提问内容"
+placeholder_text = "(提问内容)"
 editable = false
 wrap_mode = 1
 scroll_fit_content_height = true
@@ -110,11 +113,15 @@ modulate = Color(1, 1, 1, 0.7372549)
 layout_mode = 2
 text = "  Assistant"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Assistant/VBoxContainer" unique_id=1027571232]
+[node name="VBoxContainer2" type="VBoxContainer" parent="VBoxContainer/Assistant/VBoxContainer" unique_id=1625809322]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="FoldButton" type="Button" parent="VBoxContainer/Assistant/VBoxContainer/VBoxContainer" unique_id=80917547]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Assistant/VBoxContainer/VBoxContainer2" unique_id=1027571232]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="FoldButton" type="Button" parent="VBoxContainer/Assistant/VBoxContainer/VBoxContainer2/VBoxContainer" unique_id=80917547]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 0.5686275)
@@ -123,7 +130,7 @@ button_pressed = true
 text = " (思考内容)"
 alignment = 0
 
-[node name="Prompt" type="RichTextLabel" parent="VBoxContainer/Assistant/VBoxContainer/VBoxContainer" unique_id=1429353329]
+[node name="Prompt" type="RichTextLabel" parent="VBoxContainer/Assistant/VBoxContainer/VBoxContainer2/VBoxContainer" unique_id=1429353329]
 unique_name_in_owner = true
 clip_contents = false
 layout_mode = 2
@@ -135,10 +142,10 @@ fit_content = true
 context_menu_enabled = true
 selection_enabled = true
 
-[node name="AssistantMessageBox" type="RichTextLabel" parent="VBoxContainer/Assistant/VBoxContainer" unique_id=1582552011]
+[node name="AssistantMessageBox" type="RichTextLabel" parent="VBoxContainer/Assistant/VBoxContainer/VBoxContainer2" unique_id=1582552011]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 0
+size_flags_vertical = 3
 focus_mode = 2
 theme_override_colors/default_color = Color(1, 1, 1, 0.8784314)
 theme_override_constants/line_separation = 4
@@ -167,5 +174,5 @@ focus_mode = 0
 icon = SubResource("DPITexture_x52up")
 
 [connection signal="pressed" from="VBoxContainer/User/VBoxContainer/HBoxContainer/CopyUserMessageButton" to="." method="copy_user_message"]
-[connection signal="toggled" from="VBoxContainer/Assistant/VBoxContainer/VBoxContainer/FoldButton" to="." method="_on_fold_button_toggled"]
+[connection signal="toggled" from="VBoxContainer/Assistant/VBoxContainer/VBoxContainer2/VBoxContainer/FoldButton" to="." method="_on_fold_button_toggled"]
 [connection signal="pressed" from="VBoxContainer/Assistant/VBoxContainer/HBoxContainer/CopyAssistantMessageButton" to="." method="copy_assistant_message"]

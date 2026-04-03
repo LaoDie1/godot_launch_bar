@@ -126,9 +126,10 @@ func set_item_as_checkable(menu_path: String, status: bool) -> void:
 	_set_params( menu_path, "set_item_as_checkable", [status])
 
 func set_shortcut(menu_path: String, shortcut_str: String) -> void:
-	var shortcut : Shortcut = Shortcut.new()
 	var event : InputEventKey = parse_shortcut(shortcut_str)
+	var shortcut : Shortcut = Shortcut.new()
 	shortcut.events.push_back(event)
+	var menu_id = get_menu_id(menu_path)
 	_set_params(menu_path, "set_item_shortcut", [shortcut])
 
 func add_sub_item(sub_menu_name: String, parent_menu_path: String) -> int:

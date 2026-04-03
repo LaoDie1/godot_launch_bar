@@ -9,12 +9,9 @@ extends Window
 
 @onready var type_tree: Tree = %TypeTree
 @onready var value_tree_container: Container = %ValueTreeContainer
-
-## 调用 TreeItem.set_metadata 时的键名
-enum ValueMetaKey {
-	PROPERTY_KEY, ##属性所属key
-	VALUE_TYPE, ##属性值的类型
-}
+@onready var stylebox_color_picker: ColorPicker = %StyleBoxColorPicker
+@onready var select_color_window: Window = %SelectColorWindow
+@onready var model_type_selector: ItemList = $ModelTypeSelector
 
 func _init() -> void:
 	close_requested.connect(hide)
@@ -25,9 +22,15 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			hide()
 
 
+## 调用 TreeItem.set_metadata 时的键名
+enum ValueMetaKey {
+	PROPERTY_KEY, ##属性所属key
+	VALUE_TYPE, ##属性值的类型
+}
+
 var type_key_to_value_tree_dict: Dictionary = {}
 var key_to_value_item_dict : Dictionary = {}
-
+var current_edit_value_item: TreeItem
 func get_value_tree(type_key: String) -> Tree:
 	type_key = type_key.strip_edges()
 	if not type_key_to_value_tree_dict.has(type_key):
@@ -46,8 +49,25 @@ func get_value_tree(type_key: String) -> Tree:
 		value_tree.create_item()
 		value_tree.visible = false
 		value_tree.clip_contents = false
+		value_tree.item_mouse_selected.connect(
+			func(_mouse_pos, _mouse_button_index):
+				var value_item : TreeItem = value_tree.get_selected()
+				if value_item:
+					var key : String = value_item.get_metadata(ValueMetaKey.PROPERTY_KEY)
+					if key.ends_with("/model"):
+						# INFO 弹出大模型列表选项
+						current_edit_value_item = value_item
+						model_type_selector.top_level = true
+						model_type_selector.show()
+						model_type_selector.grab_focus.call_deferred()
+						#model_type_selector.global_position = model_type_selector.get_global_mouse_position()
+						var item_rect = value_tree.get_item_area_rect(value_item, 1)
+						model_type_selector.global_position = value_tree.global_position + item_rect.position + Vector2(0, 36)
+						value_item.set_editable(1, false)
+		)
 		value_tree.item_edited.connect(
 			func():
+				current_edit_value_item = null
 				var value_item : TreeItem = value_tree.get_edited()
 				if value_item:
 					var key : String = value_item.get_metadata(ValueMetaKey.PROPERTY_KEY)
@@ -60,51 +80,118 @@ func get_value_tree(type_key: String) -> Tree:
 							Global.config.set_value(key, value_item.get_range(1))
 						TYPE_BOOL:
 							Global.config.set_value(key, value_item.is_checked(1))
+						TYPE_COLOR:
+							pass
 						_:
 							Log.warn(ScriptUtil.get_info(self), "错误的数据类型", key, value_item.get_cell_mode(1))
+		)
+		value_tree.custom_item_clicked.connect(
+			func(mouse_button_index: int):
+				var item : TreeItem = value_tree.get_selected()
+				if mouse_button_index == MOUSE_BUTTON_LEFT:
+					# INFO 修改选中的颜色
+					if item.get_metadata(ValueMetaKey.VALUE_TYPE) == TYPE_COLOR:
+						var key : String = item.get_metadata(ValueMetaKey.PROPERTY_KEY)
+						stylebox_color_picker.color = Global.config.get_value(key, Color.WHITE)
+						stylebox_color_picker.set_meta("item", item)
+						stylebox_color_picker.set_meta("style_box", item.get_meta("custom_data"))
+						var callback : Callable = func(color, target_item):
+							if target_item == item:
+								var style_box : StyleBoxFlat = stylebox_color_picker.get_meta("style_box")
+								style_box.bg_color = color
+								Global.config.set_value(key, color)
+						stylebox_color_picker.color_changed.connect(callback.bind(item))
+						select_color_window.popup(Rect2(DisplayServer.mouse_get_position(), Vector2()))
 		)
 	return type_key_to_value_tree_dict[type_key]
 
 
-func _ready() -> void:
-	Global.config.bind_node(self, "config_window_size", null, "size")
-	Global.config.bind_node(self, "config_window_pos", null, "position")
-	
-	await visibility_changed
-	
-	type_tree.hide_root = true
-	var cache_type_keys: Array = []
-	var data : Dictionary = Global.config.get_data()
-	for key:String in data:
-		var item = key.rsplit("/")
-		if item.size() == 1:
-			item.insert(0, "misc")
-		var type_key : String = str(item[0]).to_lower()
-		if not cache_type_keys.has(type_key):
-			cache_type_keys.append(type_key)
-		
-		var value_tree : Tree = get_value_tree(type_key)
-		var value_root : TreeItem = value_tree.get_root()
-		var value_item : TreeItem = value_root.create_child()
-		
-		var value_key : String = item[1]
-		value_item.set_text(0, value_key)
-		value_item.set_tooltip_text(0, key)
-		value_item.set_metadata(ValueMetaKey.PROPERTY_KEY, key) # 记录这个数据的完整路径 key
-		var value : Variant = data[key]
-		_set_item_value(value_item, value)
-		key_to_value_item_dict[key] = value_item
-	
-	cache_type_keys.sort()
-	var type_root : TreeItem = type_tree.create_item()
-	for type_key in cache_type_keys:
-		var type_item = type_root.create_child()
+var _cache_type_keys: Array = []
+func create_value_item(key: String):
+	key = key.trim_prefix("/").trim_suffix("/")
+	if key_to_value_item_dict.has(key):
+		return
+	var items : PackedStringArray = key.rsplit("/")
+	if str(items[0]).strip_edges() == "":
+		items.remove_at(0)
+	if items.size() == 1:
+		items.insert(0, "misc")
+	var type_key : String = str(items[0]).to_lower()
+	if not _cache_type_keys.has(type_key):
+		_cache_type_keys.append(type_key)
+		var type_root : TreeItem = type_tree.get_root()
+		var type_item : TreeItem = type_root.create_child()
 		type_item.set_text(0, type_key.get_file().capitalize())
 		type_item.set_metadata(0, type_key)
 		type_item.set_tooltip_text(0, type_key)
 		if type_key == "misc":
 			type_item.visible = false
 	
+	var value_tree : Tree = get_value_tree(type_key)
+	var value_root : TreeItem = value_tree.get_root()
+	var value_item : TreeItem = value_root.create_child()
+	
+	var value_key : String = items[1]
+	value_item.set_text(0, value_key.capitalize())
+	value_item.set_tooltip_text(0, key)
+	value_item.set_metadata(ValueMetaKey.PROPERTY_KEY, key) # 记录这个数据的完整路径 key
+	
+	var value : Variant = Global.config.get_value(key)
+	_set_item_value(value_item, value)
+	key_to_value_item_dict[key] = value_item
+
+func _ready() -> void:
+	Global.config.bind_object(self, "config_window_size", null, "size")
+	Global.config.bind_object(self, "config_window_pos", null, "position")
+	
+	await visibility_changed
+	
+	# 配置展示
+	type_tree.hide_root = true
+	type_tree.create_item()
+	for key: String in Global.config.get_data():
+		create_value_item(key)
+	
+	# 大模型
+	var modules : Array = []
+	var real_path : String = FileUtil.get_real_path("./model_names.txt")
+	if not FileUtil.file_exists(real_path):
+		# 文件数据格式
+		var modules_text = FileUtil.read_as_string("res://model_names.txt")
+		FileUtil.write_as_string(real_path, modules_text)
+		modules = JSON.parse_string(modules_text)
+		Log.debug("读取模型配置数据", modules_text)
+	else:
+		var text : String = FileUtil.read_as_string(real_path)
+		prints("读取到", real_path, "中的数据")
+		print(text)
+		var data = JSON.parse_string(text)
+		if data:
+			modules = data
+	for model in modules:
+		for model_data: Dictionary in model["models"]:
+			# 加载模型信息到选项列表
+			model_type_selector.add_item("%s: %s" % [model.get("name", ""), model_data["model"]])
+			model_type_selector.set_item_metadata(model_type_selector.item_count - 1, model_data)
+	model_type_selector.item_selected.connect(
+		func(index):
+			if current_edit_value_item:
+				var data = model_type_selector.get_item_metadata(index)
+				model_type_selector.hide()
+				# 更新模型
+				var key : String = current_edit_value_item.get_metadata(ValueMetaKey.PROPERTY_KEY)
+				Global.config.set_value(key, data["model"])
+				current_edit_value_item.set_text(1, data["model"])
+				# 更新对应 base url 地址
+				var base_url_key = key.get_base_dir().path_join("base_url")
+				var base_url_item = key_to_value_item_dict.get(base_url_key)
+				if base_url_item:
+					base_url_item.set_text(1, data["base_url"])
+					Global.config.set_value(base_url_key, data["base_url"])
+	)
+	model_type_selector.focus_exited.connect(model_type_selector.hide)
+	
+	# 同步更新数据
 	Global.config.value_changed.connect(
 		func(key, _previous_value, value):
 			if key_to_value_item_dict.has(key):
@@ -112,6 +199,8 @@ func _ready() -> void:
 				if is_instance_valid(value_item):
 					# 更新这个 TreeItem 的值
 					_set_item_value(value_item, value)
+			elif typeof(_previous_value) == TYPE_NIL:
+				create_value_item(key)
 	)
 
 
@@ -121,7 +210,12 @@ func _set_item_value(item: TreeItem, value: Variant) -> void:
 	item.set_metadata(ValueMetaKey.VALUE_TYPE, typeof(value))
 	match typeof(value):
 		TYPE_STRING:
-			item.set_text(1, str(value))
+			item.set_cell_mode(1, TreeItem.CELL_MODE_STRING)
+			if str(value).length() > 30:
+				item.custom_minimum_height = 45
+				item.set_edit_multiline(1, true)
+				item.set_autowrap_mode(1, TextServer.AUTOWRAP_ARBITRARY)
+			item.set_text(1, value)
 			item.set_editable(1, true)
 		TYPE_INT, TYPE_FLOAT:
 			item.set_cell_mode(1, TreeItem.CELL_MODE_RANGE)
@@ -133,15 +227,23 @@ func _set_item_value(item: TreeItem, value: Variant) -> void:
 			item.set_editable(1, true)
 		TYPE_BOOL:
 			item.set_cell_mode(1, TreeItem.CELL_MODE_CHECK)
-			item.set_checked(0, value)
+			item.set_checked(1, value)
 			item.set_editable(1, true)
-		#TYPE_VECTOR2, TYPE_VECTOR2I:
-			#item.set_text(1, str(value))
-			#item.set_editable(1, false)
+		TYPE_COLOR:
+			item.set_cell_mode(1, TreeItem.CELL_MODE_CUSTOM)
+			item.set_editable(1, true)
+			var style_box: StyleBoxFlat
+			if item.has_meta("custom_data"):
+				style_box = item.get_meta("custom_data")
+			else:
+				style_box = StyleBoxFlat.new()
+				item.set_meta("custom_data",  style_box)
+				item.set_custom_stylebox(1, style_box)
+			style_box.bg_color = value
+		
 		_:
 			item.visible = false
 			item.set_editable(1, false)
-	
 
 
 # 展示不同的 Value 的 Tree

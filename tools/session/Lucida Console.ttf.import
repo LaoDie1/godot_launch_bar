@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://3mjo1xb3qljb"
-path="res://.godot/imported/luximr-3.ttf-153d26011285d52d48ce96118a8d169b.fontdata"
+uid="uid://bij0yisa4qlxy"
+path="res://.godot/imported/Lucida Console.ttf-d37148938c6e6237ebd6898d99088dbc.fontdata"
 
 [deps]
 
-source_file="res://resource/luximr-3.ttf"
-dest_files=["res://.godot/imported/luximr-3.ttf-153d26011285d52d48ce96118a8d169b.fontdata"]
+source_file="res://tools/session/Lucida Console.ttf"
+dest_files=["res://.godot/imported/Lucida Console.ttf-d37148938c6e6237ebd6898d99088dbc.fontdata"]
 
 [params]
 

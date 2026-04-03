@@ -14,8 +14,10 @@ extends Window
 
 
 func _enter_tree() -> void:
-	Global.config.bind_node(self, "translator/window_size", null, "size")
-	Global.config.bind_node(conversation, "translator/api_key", "", "api_key")
+	Global.config.bind_object(self, "translator/window_size", null, "size")
+	Global.config.bind_object(conversation, "translator/api_key", "", "api_key")
+	Global.config.bind_object(conversation, "translator/model", "", "model")
+	Global.config.bind_object(conversation, "translator/base_url", "", "base_url")
 
 
 ## 翻译

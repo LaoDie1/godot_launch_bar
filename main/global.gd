@@ -6,7 +6,7 @@ signal visibility_changed
 
 var config : DataFile = DataFile.instance("user://program_global.data", DataFile.STRING)
 
-var main: Main
+var launch_bar: LaunchBar
 var input_text_box: InputTextBox
 
 
@@ -16,8 +16,8 @@ func _enter_tree() -> void:
 	get_tree().node_added.connect(
 		func(node):
 			if node is Control:
-				if node is Main:
-					main = node
+				if node is LaunchBar:
+					launch_bar = node
 				elif node is InputTextBox:
 					input_text_box = node
 	)
@@ -30,8 +30,6 @@ func _enter_tree() -> void:
 					input_text_box.release_focus()
 	, Object.CONNECT_DEFERRED)
 	
-	config.bind_node(get_tree().root, "program/window_pos", null, "position")
-	
 	# 自动保存 按分钟保存
 	var minue : int = Global.config.get_value("program/auto_save_interval", 5)
 	Global.config.set_value("program/auto_save_interval", minue)
@@ -40,7 +38,7 @@ func _enter_tree() -> void:
 	auto_save_timer.autostart = true
 	auto_save_timer.timeout.connect(
 		func():
-			Main.show_prompt("自动保存数据")
+			LaunchBar.show_prompt("自动保存数据")
 			config.save()
 	)
 	add_child(auto_save_timer)
@@ -50,7 +48,9 @@ func _enter_tree() -> void:
 				auto_save_timer.wait_time = curr
 	)
 
+
 func _exit_tree() -> void:
+	config.update_data_by_bind_nodes()
 	var save_status = config.save()
 	Log.print_json(config.get_data(), "\t")
 	Log.debug("退出程序保存数据", save_status)

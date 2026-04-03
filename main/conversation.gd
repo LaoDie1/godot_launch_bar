@@ -11,7 +11,6 @@
 class_name Conversation
 extends Node
 
-
 signal requested(message_data: Dictionary) ##已发出请求
 signal responded_message(message_data: Dictionary) ##已响应请求结果
 signal responded_stream_data(delta_data: Dictionary) ##每帧的流数据
@@ -34,7 +33,7 @@ static var propertys : PackedStringArray = []
 
 @export var base_url : String = ""
 @export var api_key: String = ""
-@export_enum("moonshot-v1-32k", "kimi-k2.5") var model: String = ""
+@export var model: String = ""
 @export var stream: bool = false ##是否开启流输出
 @export var tool_mode : bool = false ## 如果为工具模式，则没有上下文，只有第一个消息和最后一个消息会被发送
 @export_multiline var tool_message: String ##工具模式的提示词

@@ -20,18 +20,14 @@ var conversation_messages_file := DataFile.instance("user://conversation_message
 
 
 func _ready() -> void:
-	visibility_changed.connect(
-		func():
-			if visible:
-				await get_tree().create_timer(0.1).timeout
-				self.grab_focus()
-				send_text_box.grab_focus()
-	)
-	Global.config.bind_node(self, "session/window_size", null, "size")
-	Global.config.bind_node(conversation, "session/api_key", "", "api_key")
+	Global.config.bind_object(self, "session/window_size", null, "size")
+	Global.config.bind_object(conversation, "session/model", "", "model")
+	Global.config.bind_object(conversation, "session/base_url", "", "base_url")
+	Global.config.bind_object(conversation, "session/api_key", "", "api_key")
+	Global.config.bind_object(conversation, "session/message_memory_limit", null, "message_memory_limit")
 	
 	# 会话列表
-	conversation_messages_file.bind_node(conversation, "session_history_messages", null, "messages")
+	conversation_messages_file.bind_object(conversation, "session_history_messages", null, "messages")
 	get_tree().root.tree_exiting.connect(conversation_messages_file.save)
 	
 	# 更新历史会话列表
@@ -44,7 +40,6 @@ func _ready() -> void:
 			assistant_message_data = conversation.messages[idx + 1]
 		item.update_message(user_message_data, assistant_message_data)
 	visibility_changed.connect(_scroll_down, Object.CONNECT_ONE_SHOT | Object.CONNECT_DEFERRED)
-	
 	
 	# 来消息时，自动滚动到底部方便查看
 	var end_resp = func(_data):
@@ -82,7 +77,8 @@ func send_current_text() -> void:
 
 
 func _scroll_down() -> void:
-	message_scroll_container.scroll_vertical = int(message_scroll_container.get_v_scroll_bar().max_value)
+	if visible:
+		message_scroll_container.scroll_vertical = int(message_scroll_container.get_v_scroll_bar().max_value)
 
 
 func _on_send_text_box_gui_input(event: InputEvent) -> void:

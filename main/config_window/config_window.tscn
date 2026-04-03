@@ -49,4 +49,33 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 
+[node name="SelectColorWindow" type="Window" parent="." unique_id=354922774]
+unique_name_in_owner = true
+oversampling_override = 1.0
+size = Vector2i(298, 607)
+visible = false
+wrap_controls = true
+borderless = true
+extend_to_title = true
+popup_wm_hint = true
+
+[node name="MarginContainer" type="MarginContainer" parent="SelectColorWindow" unique_id=1660947156]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="StyleBoxColorPicker" type="ColorPicker" parent="SelectColorWindow/MarginContainer" unique_id=925098113]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 2
+
+[node name="ModelTypeSelector" type="ItemList" parent="." unique_id=469280274]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(120, 0)
+offset_right = 120.0
+offset_bottom = 250.0
+allow_reselect = true
+auto_width = true
+
 [connection signal="item_selected" from="Control/MarginContainer/HSplitContainer/TypeTree" to="." method="_on_type_tree_item_selected"]
+[connection signal="focus_exited" from="SelectColorWindow" to="SelectColorWindow" method="hide"]

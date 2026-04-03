@@ -13,7 +13,7 @@ script = ExtResource("1_807wb")
 unique_name_in_owner = true
 script = ExtResource("2_y8dgk")
 base_url = "https://api.moonshot.cn/v1/chat/completions"
-model = "moonshot-v1-32k"
+model = "kimi-k2.5"
 stream = true
 metadata/_custom_type_script = "uid://co4nsocgm00gg"
 
@@ -53,7 +53,7 @@ size_flags_vertical = 3
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_bottom = 64
 
 [node name="SessionItemList" type="VBoxContainer" parent="MarginContainer/VSplitContainer/MessageScrollContainer/MarginContainer" unique_id=554877299]
 unique_name_in_owner = true
@@ -69,9 +69,6 @@ custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 placeholder_text = "在这里输入你的问题，按  Enter↵  键或点击下方按钮进行发送"
 wrap_mode = 1
-
-[node name="HSeparator" type="HSeparator" parent="MarginContainer/VSplitContainer/VBoxContainer" unique_id=927915524]
-layout_mode = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VSplitContainer/VBoxContainer" unique_id=1470312701]
 layout_mode = 2

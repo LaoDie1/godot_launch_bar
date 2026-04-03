@@ -8,12 +8,6 @@ var hot_key : WindowServer = null
 
 func _initialize() -> void:
 	auto_accept_quit = false
-	root.close_requested.connect(
-		func():
-			set_main_visible(false)
-			#quit() # 点击关闭按钮或按 Alt + F4 进行关闭退出
-	)
-	root.focus_exited.connect(set_main_visible.bind(false))
 	WindowServer.set_window_taskbar_icon_visible.call_deferred(root, false)
 	
 	# 热键
@@ -31,6 +25,7 @@ func _finalize() -> void:
 	hot_key.unregister_hotkey()
 
 
+## 这个窗口屏幕是否可见的
 static func is_visible() -> bool:
 	return Engine.get_meta("visible")
 
