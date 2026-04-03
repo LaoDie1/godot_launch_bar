@@ -26,11 +26,6 @@ func _enter_tree() -> void:
 			if Global.config.get_value("program/lose_focus_to_hide", true):
 				Program.set_main_visible(false)
 	)
-	get_tree().root.visibility_changed.connect(
-		func():
-			if get_tree().root.visible:
-				input_node.grab_focus()
-	)
 
 
 var right_menu := MenuWrapper.new()
@@ -39,6 +34,8 @@ func _ready() -> void:
 		# 如果存在已经启动的程序则退出
 		get_tree().quit()
 		return 
+	
+	get_tree().root.focus_entered.connect(input_node.grab_focus)
 	
 	# 绑定节点配置
 	Global.config.bind_object(%LaunchBarNameLabel, "program/launch_bar_name", "<启动条>", "text")

@@ -35,7 +35,7 @@ enum ScaleType {
 
 var _last_zoom : Vector2 = Vector2(0, 0):
 	set(v):
-		if not _last_zoom.is_equal_approx(v) and not (_last_zoom.is_zero_approx() or _last_zoom.is_finite()):
+		if _last_zoom != v and v.is_finite() and v != Vector2.ZERO:
 			_last_zoom = v
 			if not is_node_ready():
 				await ready

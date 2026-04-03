@@ -7,8 +7,6 @@
 class_name CameraLimit
 extends BaseCameraByTileMap
 
-## 更新等待时间，防止
-@export var wait_time: float = 0.0
 ## 额外设置的范围
 @export var margin : Rect2 = Rect2(0,0,0,0):
 	set(v):
@@ -20,11 +18,8 @@ var __init_update_zoom_timer : Variant = (
 		var method : Callable = func():
 			if not enabled:
 				return
-			
 			while not tilemap:
 				await get_tree().process_frame
-			get_tree().create_timer(maxf(0.1, wait_time)).timeout.connect(_update_camera)
-		
 		if not is_node_ready():
 			self.ready.connect(method, Object.CONNECT_ONE_SHOT)
 		else:

@@ -1,12 +1,14 @@
 [gd_scene format=3 uid="uid://pc5fnpp8ycsl"]
 
 [ext_resource type="Script" uid="uid://bdc0s3lx7ue17" path="res://tools/session/session_window.gd" id="1_807wb"]
-[ext_resource type="Script" uid="uid://co4nsocgm00gg" path="res://main/conversation.gd" id="2_y8dgk"]
+[ext_resource type="Script" uid="uid://co4nsocgm00gg" path="res://src/main/conversation.gd" id="2_y8dgk"]
 
 [node name="SessionWindow" type="Window" unique_id=1297276326]
 oversampling_override = 1.0
 initial_position = 2
 size = Vector2i(600, 600)
+transient = true
+transient_to_focused = true
 script = ExtResource("1_807wb")
 
 [node name="Conversation" type="Node" parent="." unique_id=1289993192]
