@@ -59,6 +59,7 @@ enabled_parent = false
 metadata/_custom_type_script = "uid://dwsno5yktiao8"
 
 [node name="StatusIndicator" type="StatusIndicator" parent="." unique_id=1051012809]
+tooltip = "launch bar"
 icon = ExtResource("3_x70cw")
 menu = NodePath("../IndicatorPopupMenu")
 

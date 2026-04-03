@@ -60,6 +60,7 @@ func _ready() -> void:
 				if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 					auto_scroll_timer.stop()
 	)
+	get_tree().create_timer(0.1).timeout.connect(_scroll_down)
 
 
 func send_current_text() -> void:

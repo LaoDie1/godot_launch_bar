@@ -22,6 +22,14 @@ static func get_theme_type() -> ThemeType:
 		return ThemeType.LIGHT if not DisplayServer.is_dark_mode() else ThemeType.DARK
 	return ThemeType.DARK
 
+static func thread_execute_command(params: Array, callback: Callable):
+	var root : SceneTree = Engine.get_main_loop()
+	var thread = Thread.new()
+	thread.start(execute_command.bind(params))
+	while thread.is_alive():
+		await root.create_timer(0.2).timeout
+	var result : String = thread.wait_to_finish()
+	callback.call(result)
 
 ## 执行CMD命令
 static func execute_command(params: Array) -> String:

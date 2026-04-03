@@ -22,7 +22,7 @@ run/low_processor_mode=true
 boot_splash/show_image=false
 boot_splash/stretch_mode=0
 boot_splash/use_filter=false
-config/icon="res://icon.svg"
+config/icon="uid://co47tohbmska4"
 config/macos_native_icon="res://logo.icns"
 config/windows_native_icon="res://logo.ico"
 

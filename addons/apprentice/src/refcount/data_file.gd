@@ -69,11 +69,11 @@ var data_format : int = BYTES
 static func instance(file_path: String, data_format : int = BYTES, default_data: Dictionary = {}) -> DataFile:
 	make_dir_if_not_exists(file_path.get_base_dir())
 	
-	const KEY = &"DataFile_datas"
+	const KEY = &"DataFile_singlton_dict"
 	if not Engine.has_meta(KEY):
 		Engine.set_meta(KEY, {})
 	var data_file_dict : Dictionary = Engine.get_meta(KEY)
-	if not data_file_dict.has(file_path):
+	if not data_file_dict.has(file_path): # 相同的文件路径返回的是单例对象
 		var data_file = DataFile.new()
 		data_file.file_path = file_path
 		data_file.data_format = data_format

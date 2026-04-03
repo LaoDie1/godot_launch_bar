@@ -155,19 +155,17 @@ func _ready() -> void:
 	# 大模型
 	var modules : Array = []
 	var real_path : String = FileUtil.get_real_path("./model_names.txt")
+	var modules_text: String = ""
 	if not FileUtil.file_exists(real_path):
 		# 文件数据格式
-		var modules_text = FileUtil.read_as_string("res://model_names.txt")
+		modules_text = FileUtil.read_as_string("res://model_names.txt")
 		FileUtil.write_as_string(real_path, modules_text)
-		modules = JSON.parse_string(modules_text)
-		Log.debug("读取模型配置数据", modules_text)
 	else:
-		var text : String = FileUtil.read_as_string(real_path)
-		prints("读取到", real_path, "中的数据")
-		print(text)
-		var data = JSON.parse_string(text)
-		if data:
-			modules = data
+		modules_text = FileUtil.read_as_string(real_path)
+	Log.debug("读取到 %s 中的数据" % real_path, modules_text.substr(0, 100))
+	var temp_data = JSON.parse_string(modules_text)
+	if temp_data:
+		modules = temp_data
 	for model in modules:
 		for model_data: Dictionary in model["models"]:
 			# 加载模型信息到选项列表

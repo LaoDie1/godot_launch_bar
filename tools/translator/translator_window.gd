@@ -18,16 +18,21 @@ func _enter_tree() -> void:
 	Global.config.bind_object(conversation, "translator/api_key", "", "api_key")
 	Global.config.bind_object(conversation, "translator/model", "", "model")
 	Global.config.bind_object(conversation, "translator/base_url", "", "base_url")
+	%HistoryButton.toggled.connect( func(toggle_on):  %ResultContainer.collapsed = not toggle_on )
+	Global.config.bind_object(%HistoryButton, "translator/show_history", false, "button_pressed")
+	Global.config.bind_object(%ResultContainer, "translator/split_offsets", null, "split_offsets")
 
 
 ## 翻译
 func translate(message: String) -> void:
+	if conversation.is_running():
+		printerr("正在执行中，请稍后")
+		return
 	message = message.strip_edges()
 	if message:
 		%TransTargetTextBox.text = message
-		conversation.send(message)
+		conversation.send("只翻译，不解释，不回答，只输出结果:" + message)
 	send_text_box.text = ""
-
 
 func _on_conversation_responded_stream_data(delta_data: Dictionary) -> void:
 	if delta_data["content"]:
@@ -36,16 +41,21 @@ func _on_conversation_responded_stream_data(delta_data: Dictionary) -> void:
 	scroll_container.set_deferred("scroll_vertical", scroll_container.get_v_scroll_bar().max_value)
 
 
-func _on_conversation_requested(_message_data: Dictionary) -> void:
+func _on_conversation_requested(message_data: Dictionary) -> void:
+	%ResultItemList.add_item(str(message_data.get("content", "")).substr("只翻译，不解释，不回答，只输出结果:".length()))
+	%ResultItemList.get_v_scroll_bar().value = %ResultItemList.get_v_scroll_bar().max_value
 	translate_result_box.text = ""
 	translate_result_box.hide()
 
 func _on_conversation_responded_stream_end(message_data: Dictionary) -> void:
 	Log.debug("消息结果", message_data)
+	var id = %ResultItemList.item_count - 1
+	%ResultItemList.set_item_metadata(id, message_data["content"])
+	%ResultItemList.set_item_tooltip(id, "翻译结果：%s" % message_data["content"])
 
 func _on_conversation_responded_error(error_data) -> void:
 	Log.error("连接出现错误", error_data)
-
+	%TransResultBox.text = "(执行出现错误)"
 
 func _on_translator_button_pressed() -> void:
 	translate(send_text_box.text)

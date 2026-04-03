@@ -1,0 +1,79 @@
+[gd_scene format=3 uid="uid://botoseemjqqvq"]
+
+[ext_resource type="Script" uid="uid://dy5iw3wd7qjjx" path="res://tools/speech_to_text/speech_to_text_window.gd" id="1_o8w06"]
+[ext_resource type="Script" uid="uid://64f5523qkfc" path="res://addons/apprentice/src/node/else/stream_request.gd" id="2_2c6s0"]
+
+[node name="SpeechToText" type="Window" unique_id=1567067319]
+oversampling_override = 1.0
+initial_position = 2
+size = Vector2i(700, 600)
+script = ExtResource("1_o8w06")
+
+[node name="StreamRequest" type="Node" parent="." unique_id=131717027]
+unique_name_in_owner = true
+script = ExtResource("2_2c6s0")
+metadata/_custom_type_script = "uid://64f5523qkfc"
+
+[node name="Control" type="Control" parent="." unique_id=652714806]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_lock_ = true
+
+[node name="MarginContainer" type="MarginContainer" parent="Control" unique_id=345752496]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="Control/MarginContainer" unique_id=898245594]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/MarginContainer" unique_id=1338328833]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/MarginContainer/MarginContainer" unique_id=1660017931]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="FilePathLabel" type="Label" parent="Control/MarginContainer/MarginContainer/VBoxContainer" unique_id=446045544]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.5921569)
+layout_mode = 2
+mouse_filter = 0
+text = "<文件路径>"
+clip_text = true
+
+[node name="ResultTextBox" type="TextEdit" parent="Control/MarginContainer/MarginContainer/VBoxContainer" unique_id=705459495]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "将视频拖拽到此窗口进行识别"
+
+[node name="RunningLabel" type="Label" parent="Control/MarginContainer/MarginContainer/VBoxContainer" unique_id=1813356765]
+unique_name_in_owner = true
+self_modulate = Color(1, 1, 1, 0.7176471)
+layout_mode = 2
+text = "(完成)"
+
+[node name="RunningTextTimer" type="Timer" parent="Control/MarginContainer/MarginContainer/VBoxContainer/RunningLabel" unique_id=1870594782]
+unique_name_in_owner = true
+wait_time = 0.3
+
+[node name="StopButton" type="Button" parent="Control/MarginContainer/MarginContainer/VBoxContainer" unique_id=1204933879]
+custom_minimum_size = Vector2(100, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "停止识别"
+
+[connection signal="timeout" from="Control/MarginContainer/MarginContainer/VBoxContainer/RunningLabel/RunningTextTimer" to="." method="_on_running_text_timer_timeout"]
+[connection signal="pressed" from="Control/MarginContainer/MarginContainer/VBoxContainer/StopButton" to="." method="stop"]
