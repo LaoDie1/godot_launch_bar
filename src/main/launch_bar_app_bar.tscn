@@ -128,7 +128,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(450, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "在这里输入你的问题，按键盘的  Enter↵  键进行发送"
+placeholder_text = "在这里键盘输入或鼠标中键单击粘贴你的问题，按键盘的  Enter↵  键进行发送"
 caret_blink = true
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Control/MarginContainer/HBoxContainer" unique_id=1245264996 node_paths=PackedStringArray("text_edit", "child_container")]
