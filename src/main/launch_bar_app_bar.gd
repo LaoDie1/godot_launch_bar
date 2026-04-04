@@ -29,6 +29,13 @@ func _ready() -> void:
 								child.toggled.emit(true)
 						)
 				)
+				button.gui_input.connect(
+					func(event):
+						if event is InputEventMouseButton:
+							if event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+								child.button_pressed = true
+								button.button_pressed = true
+				)
 				tool_buttons_container.add_child(button)
 	focus_exited.connect(message_box.release_focus)
 	
@@ -45,7 +52,19 @@ func _ready() -> void:
 		func():
 			WindowServer.set_window_taskbar_icon_visible(self, false)
 	)
-
+	
+	window_input.connect(
+		func(event):
+			if event is InputEventMouseButton:
+				if event.pressed:
+					WindowServer.focus_window(self)
+					message_box.grab_focus()
+					if event.button_index == MOUSE_BUTTON_MIDDLE:
+						var text = DisplayServer.clipboard_get()
+						if text:
+							message_box.text += text
+					message_box.select_all()
+	)
 
 func _exit_tree() -> void:
 	WindowServer.unregister_app_bar(self)

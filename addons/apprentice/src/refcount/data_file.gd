@@ -109,13 +109,14 @@ func set_value(key, value) -> void:
 			data[key] = value
 			# 更新绑定的对象的属性
 			if _bind_node_data_dict.has(key):
-				var item : Array = _bind_node_data_dict[key]
-				var object : Object = item[0]
-				if is_instance_valid(object):
-					var property : String = item[1]
-					var handle_callback : Callable = item[3]
-					if (typeof(object.get(property)) != typeof(value) or object.get(property) != value):
-						object.set(property, handle_callback.call(get_value(key), value) if handle_callback.is_valid() else value)
+				var items : Array = _bind_node_data_dict.get(key, [])
+				for item in items:
+					var object : Object = item[0]
+					if is_instance_valid(object):
+						var property : String = item[1]
+						var handle_callback : Callable = item[3]
+						if (typeof(object.get(property)) != typeof(value) or object.get(property) != value):
+							object.set(property, handle_callback.call(get_value(key), value) if handle_callback.is_valid() else value)
 			# 更新绑定值的方法
 			if _binded_method_dict.has(key):
 				for callback: Callable in _binded_method_dict[key]:
@@ -157,7 +158,7 @@ func set_value_by_object(object: Object, exclude_propertys: Array = []):
 			set_value(p_name, object[p_name])
 
 
-var _bind_node_data_dict: Dictionary = {}
+var _bind_node_data_dict: Dictionary[Variant, Array] = {}
 
 ## 绑定这个节点，自动更新属性。他会自动绑定不同类型的 [Control] 节点的属性和信号。
 func bind_object(object: Object, key, default_value = null, property : String = "", handle_callback : Callable = Callable()) -> void:
@@ -173,7 +174,7 @@ func bind_object(object: Object, key, default_value = null, property : String = 
 	
 	if property:
 		_set_object_value(object, property, key, default_value)
-		_bind_node_data_dict[key] = [object, property, key, handle_callback]
+		_bind_node_data_dict.get_or_add(key, []).append([object, property, key, handle_callback])
 		if object is Window:
 			object.close_requested.connect(
 				func(): set_value(key, object.get(property))
@@ -223,13 +224,14 @@ func _set_object_value(object: Object, property: String, key, default = null):
 
 ## 更新所有有关于绑定的节点的数据内容，从绑定的节点上获取数据，记录到当前数据缓存中。在退出程序前最好调用一次
 func update_data_by_bind_nodes() -> void:
-	for item in _bind_node_data_dict.values():
-		var object : Object = item[0]
-		var property : String = item[1]
-		var key = item[2]
-		var handle_callback : Callable = item[3]
-		var v : Variant = object.get(property)
-		set_value(key, handle_callback.call(get_value(key), v) if handle_callback.is_valid() else v)
+	for items in _bind_node_data_dict.values():
+		for item in items:
+			var object : Object = item[0]
+			var property : String = item[1]
+			var key = item[2]
+			var handle_callback : Callable = item[3]
+			var v : Variant = object.get(property)
+			set_value(key, handle_callback.call(get_value(key), v) if handle_callback.is_valid() else v)
 
 ## 保存数据
 func save() -> bool:

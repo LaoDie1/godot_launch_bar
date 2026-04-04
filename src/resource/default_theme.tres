@@ -191,7 +191,7 @@ expand_margin_bottom = 2.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_laje7"]
 content_margin_left = 16.0
-content_margin_top = 8.0
+content_margin_top = 4.0
 content_margin_right = 16.0
 content_margin_bottom = 8.0
 bg_color = Color(1, 1, 1, 0.75)

@@ -10,7 +10,7 @@ func _initialize() -> void:
 	auto_accept_quit = false
 	WindowServer.set_window_taskbar_icon_visible.call_deferred(root, false)
 	
-	# 热键
+	# 热键。这里设置快捷键
 	hot_key = WindowServer.new()
 	hot_key.register_hotkey(KEY_CTRL, KEY_SPACE)
 	hot_key.hot_key_pressed.connect(
