@@ -86,6 +86,7 @@ unique_name_in_owner = true
 self_modulate = Color(1, 1, 1, 0.7176471)
 layout_mode = 2
 text = "(完成)"
+horizontal_alignment = 1
 
 [node name="RunningTextTimer" type="Timer" parent="Control/MarginContainer/MarginContainer/VBoxContainer/RunningLabel" unique_id=1870594782]
 unique_name_in_owner = true

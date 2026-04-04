@@ -92,14 +92,17 @@ static func instance(file_path: String, data_format : int = BYTES, default_data:
 func has_value(key) -> bool:
 	return data.has(key)
 
-## 获取数据值
-func get_value(key, default = null):
+## 获取数据值。如果没有这个值，则会自动添加默认值为这个 key 的值
+func get_value(key, default = null) -> Variant:
 	if not data.has(key):
-		data[key] = default
+		if typeof(default) != TYPE_NIL:
+			set_value(key, default)
+		else:
+			return null
 	return data[key]
 
 ## 设置数据
-func set_value(key, value):
+func set_value(key, value) -> void:
 	if data.has(key):
 		var previous = data[key]
 		if typeof(previous) != typeof(value) or previous != value:
@@ -201,12 +204,17 @@ func bind_object(object: Object, key, default_value = null, property : String = 
 			object.dragged.connect(value_changed_callback)
 
 var _binded_method_dict: Dictionary = {}
-## 绑定值对象，属性改变时触发这个方法回调，这个回调方法需要有一个参数接收改变的 value 值
-func bind_method(key, callback: Callable, first_call: bool = false) -> void:
+## 绑定值对象，属性改变时触发这个方法回调。这个回调方法需要有 1 个参数接收改变的 [code]value[/code] 值
+##[br]
+##[br] - [param first_call] 绑定的时候是否进行调用一次，进行一次初始的触发
+##[br] - [param default_value] 第一次触发的时候，如果还没有这个 [code]key[/code] 的数据则自动设置为这个默认值 
+func bind_method(key, callback: Callable, first_call: bool = false, default_value = null) -> void:
 	var callbacks : Array = _binded_method_dict.get_or_add(key, [])
 	callbacks.append(callback)
-	if first_call and has_value(key):
-		callback.call(get_value(key))
+	if not has_value(key) and typeof(default_value) !=  TYPE_NIL:
+		set_value(key, default_value)
+	if first_call:
+		callback.call(get_value(key, default_value))
 
 
 func _set_object_value(object: Object, property: String, key, default = null):

@@ -126,6 +126,7 @@ func send(message: String) -> void:
 	var count : int = 0
 	for idx in range(messages.size()-1, -1, -1):
 		var item = messages[idx]
+		# 倒着向上查找
 		if last_role != item["role"] and item["role"]:
 			last_role = item["role"]
 			temp_list.push_back({
@@ -137,7 +138,6 @@ func send(message: String) -> void:
 			break
 	temp_list.reverse()
 	temp_messages.append_array(temp_list)
-	
 	
 	# 发出时的数据
 	var body : Dictionary = {

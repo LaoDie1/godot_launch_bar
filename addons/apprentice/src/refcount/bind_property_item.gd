@@ -11,7 +11,6 @@
 class_name BindPropertyItem
 extends RefCounted
 
-
 signal value_changed(previous, value)
 
 const META_KEY = &"_PropertyBindItem_value"
@@ -22,26 +21,18 @@ var _bind_propertys : Array[Dictionary] = []
 var _value
 
 
-#============================================================
-#  内置
-#============================================================
-func _init(name: String, value = null) -> void:
+func _init(name: String = "", value = null) -> void:
 	_name = name
 	_value = value
 
 
-#============================================================
-#  自定义
-#============================================================
 ## 获取当前属性名
 func get_name() -> String:
 	return _name
 
-
 ## 值相同
 func equals_value(value) -> bool:
 	return typeof(_value) == typeof(value) and hash(_value) == hash(value) and _value == value
-
 
 ## 绑定对象属性到当前属性
 func bind_property(object: Object, property: StringName, update: bool = false) -> BindPropertyItem:
@@ -62,7 +53,7 @@ func get_bind_property_list() -> Array[Dictionary]:
 func get_bind_method_list() -> Array[Callable]:
 	return _method_list
 
-## 绑定方法。这个方法需要有一个参数接收这个发生变化的值
+## 绑定方法。这个方法需要有 1 个参数接收这个发生变化的值
 func bind_method(method: Callable, update: bool = false):
 	_method_list.append(method)
 	if update:
@@ -88,6 +79,8 @@ func unbind_property(object: Object, property):
 func unbind_method(method: Callable):
 	_method_list.erase(method)
 
+func set_value(value):
+	update(value)
 
 ## 更新属性
 func update(value) -> void:

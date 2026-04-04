@@ -1,0 +1,148 @@
+[gd_scene format=3 uid="uid://bxw05qtlvyrw4"]
+
+[ext_resource type="Script" uid="uid://b8dq832r0we3e" path="res://src/main/launch_bar_app_bar.gd" id="1_whlkc"]
+[ext_resource type="Script" uid="uid://c72hvc1rc3rd3" path="res://src/main/scroll_container.gd" id="2_aiu8q"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_whlkc"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.4)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+corner_detail = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aiu8q"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.75)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+corner_detail = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ctnmf"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.75, 0.75, 0.75, 0.75)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+corner_detail = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbawh"]
+content_margin_left = 0.0
+content_margin_top = 4.0
+content_margin_right = 0.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+corner_detail = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j3oes"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.75)
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="Theme" id="Theme_squg8"]
+HScrollBar/styles/grabber = SubResource("StyleBoxFlat_whlkc")
+HScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_aiu8q")
+HScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_ctnmf")
+HScrollBar/styles/scroll = SubResource("StyleBoxFlat_vbawh")
+HScrollBar/styles/scroll_focus = SubResource("StyleBoxFlat_j3oes")
+
+[node name="LaunchBarAppBar" type="Window" unique_id=1212224588]
+oversampling_override = 1.0
+size = Vector2i(700, 48)
+wrap_controls = true
+borderless = true
+always_on_top = true
+extend_to_title = true
+sharp_corners = true
+minimize_disabled = true
+maximize_disabled = true
+script = ExtResource("1_whlkc")
+
+[node name="Control" type="Control" parent="." unique_id=1873668354]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="Panel" type="Panel" parent="Control" unique_id=900205819]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Control" unique_id=1808208436]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/MarginContainer" unique_id=1607760132]
+layout_mode = 2
+
+[node name="MessageBox" type="TextEdit" parent="Control/MarginContainer/HBoxContainer" unique_id=421261250]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(450, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "在这里输入你的问题，按键盘的  Enter↵  键进行发送"
+caret_blink = true
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/MarginContainer/HBoxContainer" unique_id=1245264996 node_paths=PackedStringArray("text_edit", "child_container")]
+layout_mode = 2
+theme = SubResource("Theme_squg8")
+vertical_scroll_mode = 0
+script = ExtResource("2_aiu8q")
+text_edit = NodePath("../MessageBox")
+child_container = NodePath("tool_buttons_container")
+
+[node name="tool_buttons_container" type="HBoxContainer" parent="Control/MarginContainer/HBoxContainer/ScrollContainer" unique_id=426499042]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_vertical = 3
+
+[connection signal="gui_input" from="Control/MarginContainer/HBoxContainer/MessageBox" to="." method="_on_message_box_gui_input"]

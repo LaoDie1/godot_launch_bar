@@ -5,7 +5,7 @@
 # - datetime: 2024-06-12 13:24:41
 # - version: 4.5
 #============================================================
-##属性项。监听属性的值发生的变化。
+##属性项。监听属性的值发生的变化。用于 [DynamicProperties] 类的属性对象
 class_name PropertyItem
 extends RefCounted
 
@@ -26,26 +26,114 @@ func _to_string():
 	var id = get_instance_id()
 	return "<%s#%d>" % [s_name, id]
 
-## 设置值。如果参数 [param emit_signal_] 值为 [code]true[/code] 则会发出属性改变信号。
-func set_value(value, emit_signal_: bool = true) -> void:
+## 设置值。如果参数 [param _emit_signal] 值为 [code]true[/code] 则会发出属性改变信号。
+func set_value(value, _emit_signal: bool = true) -> void:
 	if typeof(_value) != typeof(value) or _value != value:
-		if emit_signal_:
+		if _emit_signal:
 			var previous = _value
 			_value = value
 			value_changed.emit(previous, _value)
 		else:
 			_value = value
 
-## 添加值。[kbd]+[/kbd] 运算
-func add_value(value) -> void:
-	if typeof(_value) != TYPE_NIL:
-		set_value(_value + value)
+
+var _type: int 
+## 添加值。大多数数据进行 [kbd]+[/kbd] 运算，默认第一个项为[code]属性值[/code]，第二个项为[code]是否要发送信号的状态[/code]。如果这个属性的值为 [Dictionary]，则第一个项为 [code]key[/code]，第二个项为 [code]value[/code]，第三个项为[code]是否要发送信号的状态[/code]。
+##[br]
+##[br]如果修改的是 [Array] 或 [Dictionary] 类型的值，则最好不要频繁调用，或者调用时不要发送信号，否则它会频繁的创建数据的副本以用来发送 [signal value_changed] 信号
+func add_value(...params) -> void:
+	_type = typeof(_value)
+	if _type in [TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_STRING, TYPE_OBJECT, TYPE_STRING_NAME, TYPE_VECTOR2, TYPE_VECTOR2I]:
+		set_value(_value + params[0], params[1] if params.size() > 1 else true)
+	elif _type in [
+		TYPE_ARRAY,
+		TYPE_DICTIONARY,
+		TYPE_STRING,
+		TYPE_STRING_NAME,
+		TYPE_NODE_PATH,
+		TYPE_PACKED_BYTE_ARRAY,
+		TYPE_PACKED_INT32_ARRAY,
+		TYPE_PACKED_INT64_ARRAY,
+		TYPE_PACKED_FLOAT32_ARRAY,
+		TYPE_PACKED_FLOAT64_ARRAY,
+		TYPE_PACKED_STRING_ARRAY,
+		TYPE_PACKED_VECTOR2_ARRAY,
+		TYPE_PACKED_VECTOR3_ARRAY,
+		TYPE_PACKED_COLOR_ARRAY,
+		TYPE_PACKED_VECTOR4_ARRAY,
+	]:
+		var _emit_signal: bool = true
+		# 追加数组的值
+		if params.size() > 1:
+			_emit_signal = params[1]
+		if _emit_signal:
+			var previous = _value.duplicate()
+			_value.append(params[0])
+			value_changed.emit(previous, _value)
+		else:
+			_value.append(params[0])
+	elif _type == TYPE_DICTIONARY:
+		# 追加字典的值
+		var key = params[0]
+		var value = null
+		if params.size() > 1:
+			value = params[1]
+		var _emit_signal: bool = true
+		if params.size() > 2:
+			_emit_signal = params[2]
+		if _emit_signal:
+			var previous = _value.duplicate()
+			_value[value] = value
+			value_changed.emit(previous, _value)
+		else:
+			_value[value] = value
 	else:
-		set_value(value)
+		set_value(_value + params[0], params[1] if params.size() > 1 else true)
 
 ## 减去值。[kbd]-[/kbd] 运算
-func sub_value(value) -> void:
-	add_value(-value)
+func sub_value(...params)-> void:
+	_type = typeof(_value)
+	if _type in [TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_STRING, TYPE_OBJECT, TYPE_STRING_NAME, TYPE_VECTOR2, TYPE_VECTOR2I]:
+		add_value(_value - params[0], params[1] if params.size() > 1 else true)
+	elif _type in [
+		TYPE_ARRAY,
+		TYPE_DICTIONARY,
+		TYPE_STRING,
+		TYPE_STRING_NAME,
+		TYPE_NODE_PATH,
+		TYPE_PACKED_BYTE_ARRAY,
+		TYPE_PACKED_INT32_ARRAY,
+		TYPE_PACKED_INT64_ARRAY,
+		TYPE_PACKED_FLOAT32_ARRAY,
+		TYPE_PACKED_FLOAT64_ARRAY,
+		TYPE_PACKED_STRING_ARRAY,
+		TYPE_PACKED_VECTOR2_ARRAY,
+		TYPE_PACKED_VECTOR3_ARRAY,
+		TYPE_PACKED_COLOR_ARRAY,
+		TYPE_PACKED_VECTOR4_ARRAY,
+	]: 
+		var _emit_signal : bool = true
+		if params.size() > 1:
+			_emit_signal = params[1]
+		if _emit_signal:
+			var previous = _value.duplicate()
+			_value.erase(params[0])
+			value_changed.emit(previous, _value)
+		else:
+			_value.erase(params[0])
+	elif _type == TYPE_DICTIONARY:
+		var key = params[0]
+		var _emit_signal : bool = true
+		if params.size() > 1:
+			_emit_signal = params[1]
+		if _emit_signal:
+			var previous = _value.duplicate()
+			_value.erase(key)
+			value_changed.emit(previous, _value)
+		else:
+			_value.erase(key)
+	else:
+		set_value(_value - params[0], params[1] if params.size() > 1 else true)
 
 ## 乘以值。[kbd]*[/kbd] 运算
 func mul_value(value) -> void:

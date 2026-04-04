@@ -15,10 +15,7 @@ func _initialize() -> void:
 	hot_key.register_hotkey(KEY_CTRL, KEY_SPACE)
 	hot_key.hot_key_pressed.connect(
 		func(): 
-			if not root.has_focus():
-				set_main_visible(true)
-			else:
-				set_main_visible(not is_visible())
+			set_main_visible(true)
 	)
 
 func _finalize() -> void:
@@ -34,7 +31,6 @@ static func set_main_visible(status: bool) -> void:
 	var _root : Window = Engine.get_main_loop().root
 	# 必须要用计时器等待一点点时间才能成功处理焦点，否则可能刚显示出来系统还没处理结束，直接就处理焦点有时会失效
 	if status:
-
 		WindowServer.set_window_visible(_root, true)
 		Engine.get_main_loop().create_timer(0.2).timeout.connect(
 			func():
@@ -44,6 +40,5 @@ static func set_main_visible(status: bool) -> void:
 	else:
 		WindowServer.set_window_visible(_root, false)
 		_root.gui_release_focus()
-		WindowServer.release_active_window_focus()
 
 	Engine.get_meta("GLOBAL").visibility_changed.emit()

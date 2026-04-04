@@ -79,13 +79,14 @@ func start_transcribe(video_path: String):
 	%FilePathLabel.set_meta("path", video_path)
 	_current_task_id = ""
 	
-	var url = "http://127.0.0.1:28666/transcribe?path=" + video_path.replace("\\", "/").uri_encode()
-	stream_req.request(url, PackedStringArray(), HTTPClient.METHOD_GET)
+	var transcribe_url : String = Global.config.get_value("speech_to_text/transcribe_url", "http://127.0.0.1:28666/transcribe?path=")
+	stream_req.request(transcribe_url + video_path.replace("\\", "/").uri_encode(), PackedStringArray(), HTTPClient.METHOD_GET)
 	result_text_box.text = ""
 
 func stop() -> void:
 	if _current_task_id:
-		stream_req.request("http://127.0.0.1:28666/stop?task_id=" + _current_task_id)
+		var stop_url : String = Global.config.get_value("speech_to_text/stop_url", "http://127.0.0.1:28666/stop?task_id=")
+		stream_req.request(stop_url + _current_task_id)
 		print("  已打断Python识别")
 		_current_task_id = ""
 
@@ -102,7 +103,9 @@ func _on_stream_chunk(chunk: PackedByteArray):
 	if _current_task_id:
 		print("   ", text)
 		result_text_box.text += text + "\n"
-		result_text_box.scroll_vertical = result_text_box.get_v_scroll_bar().max_value
+		if result_text_box.get_v_scroll_bar().max_value - result_text_box.get_v_scroll_bar().value <= 16:
+			# 如果第一次向上拖拽的距离不足 16 像素，则继续向下滚动
+			result_text_box.scroll_vertical = result_text_box.get_v_scroll_bar().max_value
 
 func _on_error(status):
 	print("错误：", status)

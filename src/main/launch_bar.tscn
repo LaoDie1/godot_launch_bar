@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://cea745i7c8dix" path="res://src/main/function_node/input_text_box.gd" id="4_5vg8r"]
 [ext_resource type="Script" uid="uid://davl4worsql4i" path="res://src/main/function_node/tool_buttons_container.gd" id="5_m5q23"]
 [ext_resource type="PackedScene" uid="uid://bki05jo1nukoj" path="res://src/main/config_window/config_window.tscn" id="6_j0lu3"]
+[ext_resource type="PackedScene" uid="uid://bxw05qtlvyrw4" path="res://src/main/launch_bar_app_bar.tscn" id="8_vc1n6"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3wy1v"]
 content_margin_left = 0.0
@@ -38,7 +39,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[node name="LaunchBar" type="MarginContainer" unique_id=2132299443 node_paths=PackedStringArray("input_node")]
+[node name="LaunchBar" type="MarginContainer" unique_id=2132299443 node_paths=PackedStringArray("input_node", "tool_buttons_container")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -51,6 +52,7 @@ theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 script = ExtResource("1_x70cw")
 input_node = NodePath("MarginContainer/VBoxContainer/input_text_box")
+tool_buttons_container = NodePath("MarginContainer/VBoxContainer/tool_buttons_container")
 
 [node name="DragMoveControl" type="Control" parent="." unique_id=1084043786]
 layout_mode = 2
@@ -87,7 +89,7 @@ metadata/_edit_lock_ = true
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=349692919]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 16
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1365712457]
 layout_mode = 2
@@ -105,6 +107,8 @@ stretch_mode = 5
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.43137255)
 layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6627451)
+theme_override_constants/shadow_outline_size = 4
 theme_override_font_sizes/font_size = 20
 text = "<启动条>"
 horizontal_alignment = 1
@@ -115,13 +119,13 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/normal = SubResource("StyleBoxFlat_xwkvk")
 placeholder_text = "在这里输入你的问题，按键盘的  Enter↵  键进行发送"
-context_menu_enabled = false
 deselect_on_focus_loss_enabled = false
 wrap_mode = 1
 caret_blink = true
 script = ExtResource("4_5vg8r")
 
 [node name="tool_buttons_container" type="HFlowContainer" parent="MarginContainer/VBoxContainer" unique_id=511590449]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
@@ -131,6 +135,8 @@ script = ExtResource("5_m5q23")
 [node name="ConfigWindow" parent="." unique_id=726063505 instance=ExtResource("6_j0lu3")]
 unique_name_in_owner = true
 visible = false
+
+[node name="LaunchBarAppBar" parent="." unique_id=1212224588 instance=ExtResource("8_vc1n6")]
 
 [connection signal="moved" from="DragMoveControl" to="." method="_on_drag_move_control_moved"]
 [connection signal="pressed" from="StatusIndicator" to="." method="_on_status_indicator_pressed"]

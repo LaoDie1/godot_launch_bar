@@ -31,13 +31,15 @@ func get_value_dict() -> Dictionary:
 	return data
 
 func get_value(property, default : Variant = null) -> Variant:
-	var value : Variant = get_item(property).get_value()
-	if typeof(value) == TYPE_NIL:
-		return default
-	return value
+	if has_item(property):
+		var value : Variant = get_item(property).get_value()
+		if typeof(value) == TYPE_NIL:
+			return default
+		return value
+	return null
 
 func set_value(property, value: Variant, emit_signal_: bool = true) -> void:
-	get_item(property).set_value(value, emit_signal_)
+	get_item_or_add(property).set_value(value, emit_signal_)
 
 ## 获取这个属性项。
 func get_item(property) -> PropertyItem:

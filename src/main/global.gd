@@ -3,11 +3,13 @@
 extends Node
 
 signal visibility_changed
+signal submitted_text(content: String)
 
 var config : DataFile = DataFile.instance("user://program_global.data", DataFile.STRING)
 
 var launch_bar: LaunchBar
 var input_text_box: InputTextBox
+var models_table: BindPropertyItem = BindPropertyItem.new("models_table", [])
 
 
 func _enter_tree() -> void:
@@ -47,6 +49,20 @@ func _enter_tree() -> void:
 			if key == "program/auto_save_interval":
 				auto_save_timer.wait_time = curr
 	)
+	
+	# 大模型配置
+	var real_path : String = FileUtil.get_real_path("./model_names.txt")
+	var modules_text: String = ""
+	if not FileUtil.file_exists(real_path):
+		# 文件数据格式
+		modules_text = FileUtil.read_as_string("res://model_names.txt")
+		FileUtil.write_as_string(real_path, modules_text)
+	else:
+		modules_text = FileUtil.read_as_string(real_path)
+	Log.debug("读取到 %s 中的数据字符长度:" % real_path, modules_text.length())
+	var tmp_model_list = JSON.parse_string(modules_text)
+	if tmp_model_list:
+		models_table.set_value(tmp_model_list)
 
 
 func _exit_tree() -> void:

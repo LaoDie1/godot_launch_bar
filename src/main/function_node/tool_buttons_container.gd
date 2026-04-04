@@ -18,7 +18,7 @@ func _ready():
 			scan_load(FileUtil.get_real_path("./tools"))
 	
 	# INFO 启动条提交内容,进入这个窗口
-	Global.input_text_box.submitted.connect(
+	Global.submitted_text.connect(
 		func(content):
 			var button : BaseProgramButton = button_group.get_pressed_button()
 			if not button.window.is_inside_tree():
@@ -70,6 +70,12 @@ func scan_load(dir: String) -> void:
 						if event.keycode == KEY_ESCAPE:
 							window.hide()
 			)
+			window.focus_exited.connect(
+				func():
+					# 焦点丢失则隐藏
+					if Global.config.get_value("program/loss_focus_hide_sub_window", false):
+						window.hide()
+			)
 			# INFO 再次点击使用时
 			button.entered.connect(Global.input_text_box.submit_message)
 		else:
@@ -78,7 +84,7 @@ func scan_load(dir: String) -> void:
 	get_tree().create_timer(0.1).timeout.connect(
 		func():
 			for button in buttons:
-				button.custom_minimum_size = button.size * Vector2(2, 1.5)
+				button.custom_minimum_size = button.size + Vector2(32, 12)
 	)
 
 
@@ -101,3 +107,21 @@ func load_user_script(path: String) -> GDScript:
 		else:
 			printerr(path, "不存在 extends BaseProgramButton 代码")
 	return null
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		if event.keycode >= KEY_F1 and event.keycode <= KEY_F35 and event.pressed:
+			var index : int = event.keycode - KEY_F1
+			if index < button_group.get_buttons().size():
+				var button_index : int = -1
+				for child in get_children():
+					if child is BaseProgramButton:
+						button_index += 1
+						if button_index == index:
+							var button : BaseProgramButton = child
+							if not button.button_pressed:
+								button.button_pressed = true
+							else:
+								button.toggled.emit(true)
+							return

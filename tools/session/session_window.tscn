@@ -60,11 +60,32 @@ theme_override_constants/margin_bottom = 64
 [node name="SessionItemList" type="VBoxContainer" parent="MarginContainer/VSplitContainer/MessageScrollContainer/MarginContainer" unique_id=554877299]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 32
+theme_override_constants/separation = 0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VSplitContainer" unique_id=1983023866]
 layout_mode = 2
 theme_override_constants/separation = 16
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VSplitContainer/VBoxContainer" unique_id=1896886419]
+modulate = Color(1, 1, 1, 0.32156864)
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VSplitContainer/VBoxContainer" unique_id=1274554219]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Control" type="Control" parent="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer2" unique_id=1418060415]
+custom_minimum_size = Vector2(16, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer2" unique_id=1825410962]
+modulate = Color(1, 1, 1, 0.52156866)
+layout_mode = 2
+text = "当前使用的模型："
+
+[node name="ModelsButton" type="OptionButton" parent="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer2" unique_id=653858482]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="SendTextBox" type="TextEdit" parent="MarginContainer/VSplitContainer/VBoxContainer" unique_id=279022083]
 unique_name_in_owner = true
@@ -88,6 +109,8 @@ text = "发送"
 unique_name_in_owner = true
 wait_time = 0.2
 
+[connection signal="item_selected" from="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer2/ModelsButton" to="." method="_on_models_button_item_selected"]
+[connection signal="pressed" from="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer2/ModelsButton" to="." method="_on_models_button_pressed"]
 [connection signal="gui_input" from="MarginContainer/VSplitContainer/VBoxContainer/SendTextBox" to="." method="_on_send_text_box_gui_input"]
 [connection signal="text_changed" from="MarginContainer/VSplitContainer/VBoxContainer/SendTextBox" to="." method="_on_send_text_box_text_changed"]
 [connection signal="pressed" from="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer/SendButton" to="." method="send_current_text"]

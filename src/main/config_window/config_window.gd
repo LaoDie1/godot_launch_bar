@@ -39,8 +39,9 @@ func get_value_tree(type_key: String) -> Tree:
 		value_tree.columns = 2
 		value_tree.column_titles_visible = true
 		value_tree.select_mode =Tree.SELECT_ROW 
-		value_tree.set_column_expand(0, false)
-		value_tree.set_column_custom_minimum_width(0, 200)
+		value_tree.set_column_clip_content(0, false)
+		value_tree.set_column_expand(1, true)
+		#value_tree.set_column_custom_minimum_width(0, 200)
 		value_tree.set_column_title(0, "键名")
 		value_tree.set_column_title(1, "属性值")
 		value_tree.name = type_key.validate_node_name()
@@ -107,10 +108,10 @@ func get_value_tree(type_key: String) -> Tree:
 
 
 var _cache_type_keys: Array = []
-func create_value_item(key: String):
+func create_value_item(key: String) -> TreeItem:
 	key = key.trim_prefix("/").trim_suffix("/")
 	if key_to_value_item_dict.has(key):
-		return
+		return key_to_value_item_dict[key]
 	var items : PackedStringArray = key.rsplit("/")
 	if str(items[0]).strip_edges() == "":
 		items.remove_at(0)
@@ -139,6 +140,7 @@ func create_value_item(key: String):
 	var value : Variant = Global.config.get_value(key)
 	_set_item_value(value_item, value)
 	key_to_value_item_dict[key] = value_item
+	return value_item
 
 func _ready() -> void:
 	Global.config.bind_object(self, "config_window_size", null, "size", func(pre, new_value): return new_value if mode == Window.MODE_WINDOWED else pre)
@@ -152,24 +154,15 @@ func _ready() -> void:
 		create_value_item(key)
 	
 	# 大模型
-	var modules : Array = []
-	var real_path : String = FileUtil.get_real_path("./model_names.txt")
-	var modules_text: String = ""
-	if not FileUtil.file_exists(real_path):
-		# 文件数据格式
-		modules_text = FileUtil.read_as_string("res://model_names.txt")
-		FileUtil.write_as_string(real_path, modules_text)
-	else:
-		modules_text = FileUtil.read_as_string(real_path)
-	Log.debug("读取到 %s 中的数据" % real_path, modules_text.substr(0, 100))
-	var temp_data = JSON.parse_string(modules_text)
-	if temp_data:
-		modules = temp_data
-	for model in modules:
-		for model_data: Dictionary in model["models"]:
-			# 加载模型信息到选项列表
-			model_type_selector.add_item("%s: %s" % [model.get("name", ""), model_data["model"]])
-			model_type_selector.set_item_metadata(model_type_selector.item_count - 1, model_data)
+	Global.models_table.bind_method(
+		func(models_table: Array):
+			model_type_selector.clear()
+			for model in models_table:
+				for model_data: Dictionary in model["models"]:
+					# 加载模型信息到选项列表
+					model_type_selector.add_item("%s: %s" % [model.get("name", ""), model_data["model"]])
+					model_type_selector.set_item_metadata(model_type_selector.item_count - 1, model_data)
+	, true)
 	model_type_selector.item_selected.connect(
 		func(index):
 			if current_edit_value_item:
@@ -188,7 +181,7 @@ func _ready() -> void:
 	)
 	model_type_selector.focus_exited.connect(model_type_selector.hide)
 	
-	# 同步更新数据
+	# 同步更新数据。如果有值发生改变，则更新 item 数据
 	Global.config.value_changed.connect(
 		func(key, _previous_value, value):
 			if key_to_value_item_dict.has(key):
@@ -199,6 +192,13 @@ func _ready() -> void:
 			elif typeof(_previous_value) == TYPE_NIL:
 				create_value_item(key)
 	)
+	
+	# 默认选中第一个
+	for child in type_tree.get_root().get_children():
+		if child.visible:
+			child.select(0)
+			get_tree().create_timer(1).timeout.connect(child.select.bind(0))
+			break
 
 
 # 根据数据类型设置显示的状态

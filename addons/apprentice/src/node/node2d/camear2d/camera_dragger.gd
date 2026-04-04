@@ -55,6 +55,9 @@ func _input(event):
 			last_mouse_pos = camera.get_global_mouse_position()
 			last_camera_pos = camera[_update_property]
 	elif event is InputEventMouseButton:
+		var control = get_tree().root.gui_get_focus_owner()
+		if control and control.get_global_rect().has_point(get_global_mouse_position()):
+			return
 		if event.button_index == MOUSE_BUTTON_MIDDLE:
 			dragging = event.pressed
 			last_mouse_pos = camera.get_global_mouse_position()

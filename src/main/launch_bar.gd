@@ -10,9 +10,15 @@ class_name LaunchBar
 extends MarginContainer
 
 @export var input_node: TextEdit
+@export var tool_buttons_container: HFlowContainer
 
+static var instance: LaunchBar
+
+func _init() -> void:
+	instance = self
 
 func _enter_tree() -> void:
+	get_tree().root.always_on_top = true
 	get_tree().root.wrap_controls = true
 	get_tree().root.extend_to_title = true
 	get_tree().root.theme = preload("uid://jlwv6dkv62k3")
@@ -95,6 +101,10 @@ func _on_status_indicator_pressed(mouse_button: int, _mouse_position: Vector2i) 
 
 func _on_drag_move_control_moved(diff: Vector2) -> void:
 	get_tree().root.position += Vector2i(diff)
+	if get_tree().root.position.y < -16:
+		get_tree().root.position.y = -16
+	if get_tree().root.position.x < 0:
+		get_tree().root.position.x = 0
 
 func _press_right_menu(_id, menu_path):
 	match menu_path:
