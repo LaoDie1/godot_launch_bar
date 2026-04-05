@@ -21,7 +21,6 @@ var is_connected : bool = false
 var has_received_headers : bool = false
 
 func request(url: String, headers: PackedStringArray = PackedStringArray(), method: HTTPClient.Method = 0, request_body: String = "") -> void:
-	print_debug(url)
 	var url_parts = url.split("://")
 	var protocol : String = url_parts[0]  # "https" 或 "http"
 	var host_and_path = url_parts[1].split("/", true, 1)

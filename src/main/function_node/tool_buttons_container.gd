@@ -77,7 +77,7 @@ func scan_load(dir: String) -> void:
 						window.hide()
 			)
 			# INFO 再次点击使用时
-			button.entered.connect(Global.input_text_box.submit_message)
+			button.entered.connect(LaunchBar.instance.submit_message)
 		else:
 			Log.warn("按钮未设置工具弹窗", button.text)
 	# 更新按钮大小

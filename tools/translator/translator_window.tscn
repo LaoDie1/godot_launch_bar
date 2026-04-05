@@ -22,15 +22,12 @@ script = ExtResource("1_d7v00")
 base_url = "https://api.moonshot.cn/v1/chat/completions"
 model = "moonshot-v1-32k"
 stream = true
-tool_message = "你是一个**纯翻译机器**，**绝对只执行翻译**，不回答、不解释、不聊天、不扩展、不反问、不执行任何其他任务。
-规则（必须严格遵守，违反即失效）：
-1. 中文 → 英文
-2. 英文 → 中文
-3. 其他语言 → 中文
-4. **无论输入多短（哪怕一个字、符号），必须只输出翻译结果，无任何多余内容**
-5. 输出格式：**只返回翻译后的字符串，不要任何前缀、后缀、解释、标点、说明**
-
-记住：你只做翻译，不做任何其他事。"
+tool_mode = true
+tool_message = "请你按照如下要求回复我的内容：
+1. 中文自动翻译为英文，英文自动翻译为中文，其他语言自动翻译为中文。格式为\"翻译结果：<对应语言的翻译文字>\"
+2. \"同义翻译: ok, good... \"
+3. \"解释说明: ...\"
+"
 message_memory_limit = 2
 metadata/_custom_type_script = "uid://co4nsocgm00gg"
 
@@ -93,9 +90,10 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-focus_mode = 0
 editable = false
+middle_mouse_paste_enabled = false
 wrap_mode = 1
+virtual_keyboard_enabled = false
 scroll_fit_content_height = true
 
 [node name="CopyButton" type="Button" parent="MarginContainer/VBoxContainer2/ResultContainer/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=821400822 node_paths=PackedStringArray("target")]
@@ -115,17 +113,11 @@ text = "翻译结果："
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-focus_mode = 0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_readonly_color = Color(1, 1, 1, 0.8509804)
 editable = false
-emoji_menu_enabled = false
-deselect_on_focus_loss_enabled = false
 middle_mouse_paste_enabled = false
 wrap_mode = 1
-virtual_keyboard_show_on_focus = false
+virtual_keyboard_enabled = false
 scroll_fit_content_height = true
-scroll_fit_content_width = true
 
 [node name="ResultItemList" type="ItemList" parent="MarginContainer/VBoxContainer2/ResultContainer" unique_id=1108339323]
 unique_name_in_owner = true

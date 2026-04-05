@@ -17,6 +17,15 @@ extends MarginContainer
 var item_data: Dictionary = {}
 var _conversation: Conversation
 
+func _init() -> void:
+	theme_changed.connect(
+		func():
+			%CopyUserMessageButton.icon = get_theme_icon("ActionCopy", "EditorIcons")
+			%ReloadButton.icon = get_theme_icon("reload", "FileDialog")
+			%DetectButton.icon = get_theme_icon("Remove", "EditorIcons")
+			%CopyAssistantMessageButton.icon = get_theme_icon("ActionCopy", "EditorIcons")
+	)
+
 func _enter_tree() -> void:
 	hide()
 
@@ -76,6 +85,7 @@ func _responded_stream_data(delta_data: Dictionary):
 	fold_button.get_parent().visible = delta_data.get("reasoning_content", "") != ""
 	if delta_data["content"]:
 		assistant_message_box.markdown_text = delta_data["content"]
+		assistant_message_box.modulate = Color.WHITE
 		assistant_message_box.show()
 
 

@@ -39,7 +39,6 @@ theme_override_constants/margin_bottom = 8
 [node name="HSplitContainer" type="HSplitContainer" parent="Control/MarginContainer" unique_id=1105275119]
 layout_mode = 2
 split_offsets = PackedInt32Array(150)
-drag_area_highlight_in_editor = true
 split_offset = 150
 
 [node name="TypeTree" type="Tree" parent="Control/MarginContainer/HSplitContainer" unique_id=238800474]

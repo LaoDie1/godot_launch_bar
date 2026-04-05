@@ -31,7 +31,7 @@ func translate(message: String) -> void:
 	message = message.strip_edges()
 	if message:
 		%TransTargetTextBox.text = message
-		conversation.send("只翻译，不解释，不回答，只输出结果:" + message)
+		conversation.send( "" + message)
 	send_text_box.text = ""
 
 func _on_conversation_responded_stream_data(delta_data: Dictionary) -> void:
@@ -42,7 +42,7 @@ func _on_conversation_responded_stream_data(delta_data: Dictionary) -> void:
 
 
 func _on_conversation_requested(message_data: Dictionary) -> void:
-	%ResultItemList.add_item(str(message_data.get("content", "")).substr("只翻译，不解释，不回答，只输出结果:".length()))
+	%ResultItemList.add_item(str(message_data.get("content", "")))
 	%ResultItemList.get_v_scroll_bar().value = %ResultItemList.get_v_scroll_bar().max_value
 	translate_result_box.text = ""
 	translate_result_box.hide()
@@ -64,4 +64,6 @@ func _on_send_text_box_gui_input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		# 按回车发送消息
 		if event.keycode == KEY_ENTER and not (event.is_command_or_control_pressed() or event.shift_pressed or event.alt_pressed):
-			translate(send_text_box.text)
+			if event.pressed:
+				translate(send_text_box.text)
+			send_text_box.accept_event()

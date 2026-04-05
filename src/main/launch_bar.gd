@@ -9,7 +9,7 @@
 class_name LaunchBar
 extends MarginContainer
 
-@export var input_node: TextEdit
+@export var input_text_box: TextEdit
 @export var tool_buttons_container: HFlowContainer
 
 static var instance: LaunchBar
@@ -21,7 +21,6 @@ func _enter_tree() -> void:
 	get_tree().root.always_on_top = true
 	get_tree().root.wrap_controls = true
 	get_tree().root.extend_to_title = true
-	get_tree().root.theme = preload("uid://jlwv6dkv62k3")
 	get_tree().root.close_requested.connect(
 		func():
 			Program.set_main_visible(false)
@@ -33,22 +32,28 @@ func _enter_tree() -> void:
 				Program.set_main_visible(false)
 	)
 
-
-var right_menu := MenuWrapper.new()
 func _ready() -> void:
 	if not OS.has_feature("editor") and WindowServer.create_program_single():
 		# 如果存在已经启动的程序则退出
 		get_tree().quit()
 		return 
 	
-	get_tree().root.focus_entered.connect(input_node.grab_focus)
+	get_tree().root.focus_entered.connect(input_text_box.grab_focus)
+	input_text_box.grab_focus()
+	input_text_box.gui_input.connect(
+		func(event):
+			if event is InputEventKey:
+				if event.keycode == KEY_ENTER and event.pressed:
+					# 按下单个 Enter 键进行发送
+					if not (event.is_command_or_control_pressed() or event.shift_pressed or event.alt_pressed):
+						submit_message()
+					input_text_box.accept_event()
+	)
 	
 	# 绑定节点配置
 	Global.config.bind_object(%LaunchBarNameLabel, "program/launch_bar_name", "<启动条>", "text")
 	Global.config.bind_object(%LaunchBarNameLabel.get_parent(), "program/show_launch_bar_name", true, "visible")
 	Global.config.bind_object(get_tree().root, "program/window_pos", null, "position")
-	var background_style : StyleBoxFlat = %BackgroundPanel.get_theme_stylebox("panel")
-	Global.config.bind_object(background_style, "program/background_color", null, "bg_color")
 	if not OS.has_feature("editor"):
 		# 开机自启动
 		Global.config.bind_method("program/autostart_on_boot", func(status):
@@ -63,13 +68,16 @@ func _ready() -> void:
 		if not Global.config.has_value("program/autostart_on_boot"):
 			Global.config.set_value("program/autostart_on_boot", false)
 	
-	input_node.grab_focus()
-	
 	# 任务状态栏菜单
+	var right_menu := MenuWrapper.new()
 	right_menu.root_menu = %IndicatorPopupMenu
 	right_menu.init_item(["设置", "-", "退出"])
 	right_menu.menu_pressed.connect(_press_right_menu)
-	right_menu.set_shortcut("/退出", "Ctrl+Q")
+	theme_changed.connect(
+		func():
+			right_menu.set_icon("/设置", get_tree().root.theme.get_icon("GDScript", "EditorIcons"))
+	)
+
 
 func _exit_tree() -> void:
 	WindowServer.release_program_single()
@@ -81,9 +89,17 @@ func _input(event: InputEvent) -> void:
 		elif event.keycode == KEY_Q and event.ctrl_pressed:
 			get_tree().quit()
 
+## 直接提交启动条中的文本内容
+func submit_message() -> void:
+	if input_text_box.text.strip_edges():
+		Program.set_main_visible(false)
+		Global.submitted_text.emit(input_text_box.text.strip_edges())
+		input_text_box.clear()
+		input_text_box.clear_undo_history()
+
 
 ## 显示提示信息
-static func show_prompt(...content: Array) -> void:
+func show_prompt(...content: Array) -> void:
 	print(content)
 	#const DURATION = 5.0
 	#var label = Label.new()

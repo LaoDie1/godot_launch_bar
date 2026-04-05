@@ -1365,3 +1365,34 @@ static func get_frame_time(physics_frame: int) -> float:
 
 static func get_current_frame_time() -> float:
 	return float(Engine.get_physics_frames()) / Engine.physics_ticks_per_second
+
+
+class ThreadIteratorLoader:
+	extends Node
+	
+	signal finished
+	
+	var _iterator
+	var _callback: Callable
+	func _init(iterator: Array, callback: Callable) -> void:
+		_iterator = iterator
+		_callback = callback
+		Engine.get_main_loop().root.add_child.call_deferred(self)
+	
+	var idx : int = 0
+	func _process(_delta):
+		var time = Time.get_ticks_msec()
+		while idx < _iterator:
+			_callback.call(_iterator[idx])
+			if Time.get_ticks_msec() - time > 0.05:
+				break
+			idx += 1
+		if idx == _iterator:
+			finished.emit()
+			queue_free()
+
+
+## 线程遍历数组，处理那种高消耗的遍历卡顿的内容
+static func thread_for_array(list: Array, callback: Callable) -> ThreadIteratorLoader:
+	var loader = ThreadIteratorLoader.new(list, callback)
+	return loader

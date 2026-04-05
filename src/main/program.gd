@@ -6,6 +6,7 @@ extends SceneTree
 
 var hot_key : WindowServer = null
 
+
 func _initialize() -> void:
 	auto_accept_quit = false
 	WindowServer.set_window_taskbar_icon_visible.call_deferred(root, false)

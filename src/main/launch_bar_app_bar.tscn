@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b8dq832r0we3e" path="res://src/main/launch_bar_app_bar.gd" id="1_whlkc"]
 [ext_resource type="Script" uid="uid://c72hvc1rc3rd3" path="res://src/main/scroll_container.gd" id="2_aiu8q"]
+[ext_resource type="Texture2D" uid="uid://co47tohbmska4" path="res://logo.png" id="2_ctnmf"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_whlkc"]
 content_margin_left = 4.0
@@ -101,6 +102,7 @@ grow_vertical = 2
 metadata/_edit_use_anchors_ = true
 
 [node name="Panel" type="Panel" parent="Control" unique_id=900205819]
+modulate = Color(1, 1, 1, 0.47058824)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -122,6 +124,15 @@ theme_override_constants/margin_bottom = 8
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Control/MarginContainer" unique_id=1607760132]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TextureRect" type="TextureRect" parent="Control/MarginContainer/HBoxContainer" unique_id=1142931601]
+clip_contents = true
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+texture = ExtResource("2_ctnmf")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="MessageBox" type="TextEdit" parent="Control/MarginContainer/HBoxContainer" unique_id=421261250]
 unique_name_in_owner = true
@@ -144,5 +155,6 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 2
 size_flags_vertical = 3
+theme_override_constants/separation = 4
 
 [connection signal="gui_input" from="Control/MarginContainer/HBoxContainer/MessageBox" to="." method="_on_message_box_gui_input"]

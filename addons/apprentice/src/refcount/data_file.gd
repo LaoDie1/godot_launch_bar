@@ -160,7 +160,7 @@ func set_value_by_object(object: Object, exclude_propertys: Array = []):
 
 var _bind_node_data_dict: Dictionary[Variant, Array] = {}
 
-## 绑定这个节点，自动更新属性。他会自动绑定不同类型的 [Control] 节点的属性和信号。
+## 绑定这个节点，同步更新属性。如果不传入 [param property] 参数，它会自动绑定不同类型的 [Control] 节点的属性和信号。
 func bind_object(object: Object, key, default_value = null, property : String = "", handle_callback : Callable = Callable()) -> void:
 	if not object is Node and property.is_empty():
 		const MESSAGE = "如果绑定的对象不是 Node 类型，则需要传入要同步绑定修改的 property 参数"
@@ -185,7 +185,10 @@ func bind_object(object: Object, key, default_value = null, property : String = 
 		var value_changed_callback : Callable = func(v):
 			set_value(key, handle_callback.call(get_value(key), v) if handle_callback.is_valid() else v)
 		# 绑定信号
-		if object is BaseButton:
+		if object is OptionButton:
+			_set_object_value(object, "selected", key, default_value)
+			object.item_selected.connect(value_changed_callback)
+		elif object is BaseButton:
 			_set_object_value(object, "button_pressed", key, default_value)
 			object.toggled.connect(value_changed_callback)
 		elif object is Range:
@@ -194,7 +197,6 @@ func bind_object(object: Object, key, default_value = null, property : String = 
 		elif object is LineEdit:
 			_set_object_value(object, "text", key, default_value)
 			object.text_changed.connect(value_changed_callback)
-			object.text_submitted.connect(value_changed_callback)
 		elif object is TextEdit:
 			_set_object_value(object, "text", key, default_value)
 			object.text_changed.connect(
@@ -203,18 +205,19 @@ func bind_object(object: Object, key, default_value = null, property : String = 
 		elif object is SplitContainer:
 			_set_object_value(object, "split_offsets", key, default_value)
 			object.dragged.connect(value_changed_callback)
+		
 
 var _binded_method_dict: Dictionary = {}
-## 绑定值对象，属性改变时触发这个方法回调。这个回调方法需要有 1 个参数接收改变的 [code]value[/code] 值
+## 绑定值对象，属性改变时触发这个方法回调。这个回调方法需要有 [b]1[/b] 个参数接收改变的 [code]value[/code] 值
 ##[br]
-##[br] - [param first_call] 绑定的时候是否进行调用一次，进行一次初始的触发
+##[br] - [param call_once] 绑定的时候是否进行调用一次，进行一次初始的触发
 ##[br] - [param default_value] 第一次触发的时候，如果还没有这个 [code]key[/code] 的数据则自动设置为这个默认值 
-func bind_method(key, callback: Callable, first_call: bool = false, default_value = null) -> void:
+func bind_method(key, callback: Callable, call_once: bool = false, default_value : Variant = null) -> void:
 	var callbacks : Array = _binded_method_dict.get_or_add(key, [])
 	callbacks.append(callback)
 	if not has_value(key) and typeof(default_value) !=  TYPE_NIL:
 		set_value(key, default_value)
-	if first_call:
+	if call_once:
 		callback.call(get_value(key, default_value))
 
 

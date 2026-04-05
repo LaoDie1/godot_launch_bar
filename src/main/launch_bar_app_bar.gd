@@ -10,10 +10,12 @@ extends Window
 @onready var message_box: TextEdit = %MessageBox
 @onready var tool_buttons_container: HBoxContainer = %tool_buttons_container
 
+var button_group := ButtonGroup.new()
+
+
 func _enter_tree() -> void:
 	hide()
 
-var button_group := ButtonGroup.new()
 func _ready() -> void:
 	if LaunchBar.instance:
 		for child in LaunchBar.instance.tool_buttons_container.get_children():
@@ -37,7 +39,6 @@ func _ready() -> void:
 								button.button_pressed = true
 				)
 				tool_buttons_container.add_child(button)
-	focus_exited.connect(message_box.release_focus)
 	
 	Global.config.bind_method("program/show_topbar", func(status):
 		if status:
@@ -45,25 +46,37 @@ func _ready() -> void:
 			WindowServer.register_app_bar(self, 2, 50)
 		else:
 			WindowServer.unregister_app_bar(self)
-			self.visible = false
 	, true, false)
 	
 	get_tree().create_timer(1).timeout.connect(
-		func():
-			WindowServer.set_window_taskbar_icon_visible(self, false)
+		func(): WindowServer.set_window_taskbar_icon_visible(self, false)
 	)
 	
+	focus_entered.connect(
+		func():
+			WindowServer.focus_window(self)
+			message_box.grab_focus()
+			message_box.select_all()
+	)
+	focus_exited.connect(message_box.release_focus)
 	window_input.connect(
 		func(event):
 			if event is InputEventMouseButton:
-				if event.pressed:
-					WindowServer.focus_window(self)
-					message_box.grab_focus()
-					if event.button_index == MOUSE_BUTTON_MIDDLE:
-						var text = DisplayServer.clipboard_get()
-						if text:
-							message_box.text += text
-					message_box.select_all()
+				if event.pressed and event.button_index == MOUSE_BUTTON_MIDDLE:
+					var text = DisplayServer.clipboard_get()
+					if text:
+						var line_column = message_box.get_line_column_at_pos( Vector2i(message_box.get_local_mouse_pos()) )
+						var column = line_column.x
+						var line = line_column.y
+						message_box.insert_text(text, line, column)
+						message_box.set_caret_line(line)
+						message_box.set_caret_column(column, true)
+						message_box.deselect()
+						message_box.select(line, column, line, column + text.length())
+	)
+	files_dropped.connect(
+		func(files):
+			message_box.text += files[0]
 	)
 
 func _exit_tree() -> void:

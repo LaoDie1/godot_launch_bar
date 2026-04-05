@@ -11,7 +11,12 @@ func _get_tool_name() -> String:
 	return "音视频转文字"
 
 func _put_message(message: String):
-	window.popup()
+	var real_path : String = FileUtil.get_real_path(message)
+	if FileUtil.file_exists(real_path):
+		printerr("不存在 %s 文件" % real_path)
+	else:
+		window.popup()
+		window.start_transcribe(real_path)
 
 func _get_order() -> int:
 	return 11

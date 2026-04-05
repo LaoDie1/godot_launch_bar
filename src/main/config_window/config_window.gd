@@ -13,6 +13,7 @@ extends Window
 @onready var select_color_window: Window = %SelectColorWindow
 @onready var model_type_selector: ItemList = $ModelTypeSelector
 
+
 func _init() -> void:
 	close_requested.connect(hide)
 
@@ -205,6 +206,7 @@ func _ready() -> void:
 func _set_item_value(item: TreeItem, value: Variant) -> void:
 	item.visible = true
 	item.set_metadata(ValueMetaKey.VALUE_TYPE, typeof(value))
+	var key : String = item.get_metadata(ValueMetaKey.PROPERTY_KEY)
 	match typeof(value):
 		TYPE_STRING:
 			item.set_cell_mode(1, TreeItem.CELL_MODE_STRING)
@@ -217,10 +219,18 @@ func _set_item_value(item: TreeItem, value: Variant) -> void:
 		TYPE_INT, TYPE_FLOAT:
 			item.set_cell_mode(1, TreeItem.CELL_MODE_RANGE)
 			item.set_range(1, value)
-			if value is int:
-				item.set_range_config(1, 1, 999, 1)
+			if Global.config_item_hint.has_value(key):
+				var hint_string : String = Global.config_item_hint.get_value(key)
+				var hints : PackedStringArray = hint_string.split(",")
+				if hints[0].is_valid_float() or hints[0].is_valid_int():
+					item.set_range_config( 1, float(hints[0]), float(hints[1]), float(hints[2]) )
+				else:
+					item.set_text(1, hint_string)
 			else:
-				item.set_range_config(1, 1, 999, 0.001)
+				if value is int:
+					item.set_range_config(1, 0, 999, 1)
+				else:
+					item.set_range_config(1, 0, 999, 0.001)
 			item.set_editable(1, true)
 		TYPE_BOOL:
 			item.set_cell_mode(1, TreeItem.CELL_MODE_CHECK)
