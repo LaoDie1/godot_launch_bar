@@ -5,7 +5,8 @@
 # - datetime: 2024-04-28 11:52:24
 # - version: 4.2.1
 #============================================================
-## 用于保存数据。可以通过 [method bind_object] 进行快速绑定节点进行数据的存储。
+## 用于管理和保存数据为文件的对象，或者用于对象属性的同步，方便对绑定的数据 key 进行统一的管理。通过 [method bind_object] 进行快速绑定节点进行数据的同步。
+##如果绑定的是同一个 key，则在这个 key 的数据发生更改之后同步更新到绑定的对象上
 ##
 ##绑定节点的配置到数据里。在下次加载的时候，自动加载数据到这个节点中。
 ##[codeblock]
@@ -63,10 +64,11 @@ var data : Dictionary
 var data_format : int = BYTES
 
 
-## 实例化数据文件
+## 实例化数据对象，如果不传入文件路径，则
 ##[br]
 ##[br]如果有这个文件，则会自动读取这个文件的数据，这个文件必须是 [Dictionary] 类型的数据
 static func instance(file_path: String, data_format : int = BYTES, default_data: Dictionary = {}) -> DataFile:
+	var real_path = FileUtil.get_real_path(file_path)
 	make_dir_if_not_exists(file_path.get_base_dir())
 	
 	const KEY = &"DataFile_singlton_dict"
@@ -160,19 +162,18 @@ func set_value_by_object(object: Object, exclude_propertys: Array = []):
 
 var _bind_node_data_dict: Dictionary[Variant, Array] = {}
 
-## 绑定这个节点，同步更新属性。如果不传入 [param property] 参数，它会自动绑定不同类型的 [Control] 节点的属性和信号。
+## 绑定这个节点，自动更新属性。他会自动绑定不同类型的 [Control] 节点的属性和信号。
 func bind_object(object: Object, key, default_value = null, property : String = "", handle_callback : Callable = Callable()) -> void:
 	if not object is Node and property.is_empty():
 		const MESSAGE = "如果绑定的对象不是 Node 类型，则需要传入要同步绑定修改的 property 参数"
 		push_error(MESSAGE)
 		printerr(MESSAGE)
 	
-	if not has_value(key):
-		if typeof(default_value) == TYPE_NIL:
-			default_value = object.get(property)
-		set_value(key, default_value)
-	
 	if property:
+		if not has_value(key):
+			if typeof(default_value) == TYPE_NIL:
+				default_value = object.get(property)
+			set_value(key, default_value)
 		_set_object_value(object, property, key, default_value)
 		_bind_node_data_dict.get_or_add(key, []).append([object, property, key, handle_callback])
 		if object is Window:
@@ -185,45 +186,58 @@ func bind_object(object: Object, key, default_value = null, property : String = 
 		var value_changed_callback : Callable = func(v):
 			set_value(key, handle_callback.call(get_value(key), v) if handle_callback.is_valid() else v)
 		# 绑定信号
-		if object is OptionButton:
-			_set_object_value(object, "selected", key, default_value)
-			object.item_selected.connect(value_changed_callback)
-		elif object is BaseButton:
-			_set_object_value(object, "button_pressed", key, default_value)
-			object.toggled.connect(value_changed_callback)
+		if object is BaseButton:
+			if object is OptionButton:
+				property = "selected"
+				object.item_selected.connect(value_changed_callback)
+			elif object is ColorPickerButton:
+				property = "color"
+				object.color_changed.bind(value_changed_callback)
+			else:
+				property = "button_pressed"
+				object.toggled.connect(value_changed_callback)
 		elif object is Range:
-			_set_object_value(object, "value", key, default_value)
+			property = "value"
 			object.value_changed.connect(value_changed_callback)
 		elif object is LineEdit:
-			_set_object_value(object, "text", key, default_value)
+			property = "text"
 			object.text_changed.connect(value_changed_callback)
 		elif object is TextEdit:
-			_set_object_value(object, "text", key, default_value)
+			property = "text"
 			object.text_changed.connect(
 				func(): set_value(key, object.text)
 			)
 		elif object is SplitContainer:
-			_set_object_value(object, "split_offsets", key, default_value)
+			property = "split_offsets"
 			object.dragged.connect(value_changed_callback)
+		else:
+			printerr("这个节点不是自动绑定的类型，请传入 property 参数的值")
 		
+		if property:
+			if not has_value(key):
+				if typeof(default_value) == TYPE_NIL:
+					default_value = object.get(property)
+			else:
+				default_value = get_value(key, default_value)
+			object.set(property, default_value)
+
+func _set_object_value(object: Object, property: String, key, default_value = null):
+	if has_value(key) or default_value:
+		object.set(property, get_value(key, default_value))
+
 
 var _binded_method_dict: Dictionary = {}
-## 绑定值对象，属性改变时触发这个方法回调。这个回调方法需要有 [b]1[/b] 个参数接收改变的 [code]value[/code] 值
+## 绑定值对象，属性改变时触发这个方法回调。这个回调方法需要有 1 个参数接收改变的 [code]value[/code] 值
 ##[br]
-##[br] - [param call_once] 绑定的时候是否进行调用一次，进行一次初始的触发
+##[br] - [param first_call] 绑定的时候是否进行调用一次，进行一次初始的触发
 ##[br] - [param default_value] 第一次触发的时候，如果还没有这个 [code]key[/code] 的数据则自动设置为这个默认值 
-func bind_method(key, callback: Callable, call_once: bool = false, default_value : Variant = null) -> void:
+func bind_method(key, callback: Callable, first_call: bool = false, default_value = null) -> void:
 	var callbacks : Array = _binded_method_dict.get_or_add(key, [])
 	callbacks.append(callback)
 	if not has_value(key) and typeof(default_value) !=  TYPE_NIL:
 		set_value(key, default_value)
-	if call_once:
+	if first_call:
 		callback.call(get_value(key, default_value))
-
-
-func _set_object_value(object: Object, property: String, key, default = null):
-	if has_value(key) or default:
-		object.set(property, get_value(key, default))
 
 ## 更新所有有关于绑定的节点的数据内容，从绑定的节点上获取数据，记录到当前数据缓存中。在退出程序前最好调用一次
 func update_data_by_bind_nodes() -> void:
@@ -238,12 +252,15 @@ func update_data_by_bind_nodes() -> void:
 
 ## 保存数据
 func save() -> bool:
-	make_dir_if_not_exists(file_path.get_base_dir())
-	match data_format:
-		BYTES:
-			return write_as_bytes(file_path, data)
-		STRING:
-			return write_as_str_var(file_path, data)
+	if file_path:
+		make_dir_if_not_exists(file_path.get_base_dir())
+		match data_format:
+			BYTES:
+				return write_as_bytes(file_path, data)
+			STRING:
+				return write_as_str_var(file_path, data)
+	else:
+		printerr("没有设置文件名，保存失败")
 	return false
 
 

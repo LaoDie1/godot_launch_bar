@@ -64,7 +64,7 @@ func get_value_tree(type_key: String) -> Tree:
 						model_type_selector.grab_focus.call_deferred()
 						#model_type_selector.global_position = model_type_selector.get_global_mouse_position()
 						var item_rect = value_tree.get_item_area_rect(value_item, 1)
-						model_type_selector.global_position = value_tree.global_position + item_rect.position + Vector2(0, 36)
+						model_type_selector.global_position = value_tree.global_position + item_rect.position + Vector2(0, 24)
 						value_item.set_editable(1, false)
 		)
 		value_tree.item_edited.connect(

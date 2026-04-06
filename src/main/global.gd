@@ -57,8 +57,9 @@ func _enter_tree() -> void:
 			breakpoint
 	)
 	if config.get_value("session/model", "").contains(":"):
-		printerr("模型型号不能有冒号")
-		breakpoint
+		var value : String = config.get_value("session/model", "")
+		var items : PackedStringArray = value.rsplit(":", true, 1)
+		config.set_value("session/model", items[1].strip_edges())
 	
 	# 大模型配置
 	var real_path : String = FileUtil.get_real_path("./model_names.txt")
