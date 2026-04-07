@@ -112,6 +112,5 @@ wait_time = 0.2
 [connection signal="item_selected" from="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer2/ModelsButton" to="." method="_on_models_button_item_selected"]
 [connection signal="pressed" from="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer2/ModelsButton" to="." method="_on_models_button_pressed"]
 [connection signal="gui_input" from="MarginContainer/VSplitContainer/VBoxContainer/SendTextBox" to="." method="_on_send_text_box_gui_input"]
-[connection signal="text_changed" from="MarginContainer/VSplitContainer/VBoxContainer/SendTextBox" to="." method="_on_send_text_box_text_changed"]
 [connection signal="pressed" from="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer/SendButton" to="." method="send_current_text"]
 [connection signal="timeout" from="AutoScrollTimer" to="." method="_scroll_down"]

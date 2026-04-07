@@ -49,18 +49,6 @@ func _enter_tree() -> void:
 				auto_save_timer.wait_time = curr
 	)
 	
-	# TEST 测试
-	config.bind_method("session/model", func(v: String):
-		# 模型型号不能存在有冒号
-		if v.contains(":"):
-			printerr("模型型号不能有冒号")
-			breakpoint
-	)
-	if config.get_value("session/model", "").contains(":"):
-		var value : String = config.get_value("session/model", "")
-		var items : PackedStringArray = value.rsplit(":", true, 1)
-		config.set_value("session/model", items[1].strip_edges())
-	
 	# 大模型配置
 	var real_path : String = FileUtil.get_real_path("./model_names.txt")
 	var modules_text: String = ""

@@ -25,7 +25,7 @@ static func label_tornado(label: RichTextLabel) -> void:
 static func lifecycle(node: Node, time: float) -> void:
 	var tween : Tween = Engine.get_main_loop().create_tween()
 	tween.tween_callback(node.queue_free).set_delay(time)
-	tween.bind_object(node)
+	tween.bind_node(node)
 
 ## 果冻弹动效果
 static func jelly(
@@ -40,7 +40,7 @@ static func jelly(
 	
 	var original_scale : Vector2 = node.scale
 	var tween: Tween = create_tween()
-	tween.bind_object(node)
+	tween.bind_node(node)
 	tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS) # 物理进程，避免帧率影响
 	target_scale *= original_scale.sign() # 保持和原来的方向一致
 	
@@ -61,7 +61,7 @@ static func jelly(
 ## 透明度渐变
 static func fade(node: CanvasItem, fade_in_time: float, interval: float, fade_out_time: float) -> Tween:
 	var tween : Tween = create_tween()
-	tween.bind_object(node)
+	tween.bind_node(node)
 	# 渐入
 	fade_in_time = maxf(0, fade_in_time)
 	if fade_in_time > 0:
@@ -72,11 +72,12 @@ static func fade(node: CanvasItem, fade_in_time: float, interval: float, fade_ou
 	tween.tween_property(node, ^"modulate:a", 0.0, fade_out_time).set_delay(maxf(0.0, interval))
 	return tween
 
+
 ## 蒸汽漂浮
 static func steam(node: CanvasItem, duration: float, distance: float = -50) -> Tween:
 	var tween : Tween = create_tween()
 	tween.set_parallel(true)
-	tween.bind_object(node)
+	tween.bind_node(node)
 	# 位置
 	var final_pos_y : float = node.position.y + distance
 	tween.tween_property(node, ^"position:y", final_pos_y, duration + 0.1)
@@ -95,11 +96,10 @@ static func steam(node: CanvasItem, duration: float, distance: float = -50) -> T
 	return tween
 
 
-
 ## 闪烁
 static func glimmer(node: CanvasItem, count: int, duration: float, end_is_show_status: bool = true) -> Tween:
 	var tween : Tween = create_tween()
-	tween.bind_object(node)
+	tween.bind_node(node)
 	tween.tween_method(
 		func(v):
 			var index : int = int(v / duration)

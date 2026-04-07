@@ -12,7 +12,6 @@ var _last_pressed_ticks : int
 var window: Window:  ## 扩展这个脚本并重写 [method _init] 方法设置这个属性要加载的 [Window] 对象
 	set(v):
 		window = v
-		window.hide()
 		toggled.connect(
 			func(toggle_on: bool):
 				# 再次点击按钮时弹出窗口

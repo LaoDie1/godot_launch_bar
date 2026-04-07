@@ -15,7 +15,7 @@ extends Window
 var python_server_pid: int 
 
 func _ready() -> void:
-	Global.config.bind_object(self, "speech_to_text/window_size", null, "size", func(pre, new_value): return new_value if mode == Window.MODE_WINDOWED else pre)
+	Global.config.bind_object(self, "speech_to_text/window_size", null, "size", Callable(), func(_v): return mode == Window.MODE_WINDOWED)
 	
 	# 绑定信号
 	stream_req.responded.connect(_on_stream_chunk)
@@ -33,23 +33,30 @@ func _ready() -> void:
 	simple_menu.menu_pressed.connect(_on_simple_menu_menu_pressed)
 	
 	await get_tree().create_timer(0.2).timeout
-	print("[ 开始检测使用环境 ]")
+	Log.info(ScriptUtil.get_info(self), "[ 开始检测使用环境 ]")
 	await %UseEnvDetector.start_detection()
-	print("[ 检测完成 ]")
+	Log.info(ScriptUtil.get_info(self), "[ 检测完成 ]")
 	%UseEnvDetector.kill_port_28666_one_click()
 	
 	# 创建 python 服务器脚本
 	var python_script_path : String = FileUtil.get_real_path("./tools/speech_to_text/stream_transcribe.py")
 	if not FileUtil.file_exists(python_script_path):
-		print("python 服务器脚本: 不存在 %s 文件，开始自动创建" % python_script_path)
+		Log.debug("python 服务器脚本: 不存在 %s 文件，开始自动创建" % python_script_path)
 		var code : String = FileUtil.read_as_string("res://tools/speech_to_text/stream_transcribe.py")
 		FileUtil.make_dir_if_not_exists(python_script_path.get_base_dir())
 		FileUtil.write_as_string(python_script_path, code)
 	
-	var python_executable_path = FileUtil.find_program_path("python")
-	prints("开始运行语音识别服务：", python_executable_path, python_script_path)
-	python_server_pid = OS.create_process(python_executable_path, [python_script_path], false)
-	print(" 已运行服务:", python_server_pid)
+	var thread := Thread.new()
+	thread.start(
+		func():
+			var python_executable_path : String = Global.config.get_value("speech_to_text/python_path", "")
+			if not python_executable_path:
+				python_executable_path = FileUtil.find_program_path("python")
+				Global.config.set_value("speech_to_text/python_path", python_executable_path)
+			Log.debug("开始运行语音识别服务", python_executable_path, python_script_path)
+			python_server_pid = OS.create_process(python_executable_path, [python_script_path], false)
+			Log.info("已运行服务", python_server_pid)
+	)
 	
 	# 开始转写（换成你的视频路径）
 	files_dropped.connect(
@@ -89,6 +96,7 @@ func stop() -> void:
 		stream_req.request(stop_url + _current_task_id)
 		print("  已打断Python识别")
 		_current_task_id = ""
+
 
 func _on_stream_request_received_headers(headers: Dictionary):
 	if headers.has("x-task-id"):
@@ -130,13 +138,13 @@ var _last_save_dir: String = "res://"
 func _on_simple_menu_menu_pressed(_idx: int, menu_path: StringName):
 	match menu_path:
 		"/文件/保存文件":
-			pass
 			var path : String = %FilePathLabel.get_meta("path", "")
 			if path:
 				DisplayServer.file_dialog_show(
 					"保存文件", _last_save_dir, path.get_file().get_basename() + ".txt", false, DisplayServer.FILE_DIALOG_MODE_SAVE_FILE, ["*.txt;Text 文件"], 
 					func(status: bool, selected_paths: PackedStringArray, selected_filter_index: int):
-						_last_save_dir = selected_paths[0].get_base_dir()
-						var file : String = selected_paths[0]
-						FileUtil.write_as_string(file, %ResultTextBox.text)
+						if not selected_paths.is_empty():
+							_last_save_dir = selected_paths[0].get_base_dir()
+							var file : String = selected_paths[0]
+							FileUtil.write_as_string(file, %ResultTextBox.text)
 				)

@@ -144,7 +144,7 @@ func create_value_item(key: String) -> TreeItem:
 	return value_item
 
 func _ready() -> void:
-	Global.config.bind_object(self, "config_window_size", null, "size", func(pre, new_value): return new_value if mode == Window.MODE_WINDOWED else pre)
+	Global.config.bind_object(self, "config_window_size", null, "size", Callable(), func(_v): return mode == Window.MODE_WINDOWED)
 	
 	await visibility_changed
 	

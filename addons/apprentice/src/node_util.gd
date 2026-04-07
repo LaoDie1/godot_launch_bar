@@ -353,7 +353,6 @@ static func get_binded_singleton_node(from_node: Node, type_class: Script) -> Ob
 static func create_rich_label(text, ...label_callbacks: Array) -> RichTextLabel:
 	var label : RichTextLabel = RichTextLabel.new()
 	label.visible = true
-	get_tree().current_scene.add_child(label)
 	label.fit_content = true
 	label.clip_contents = false
 	label.scroll_active = false
@@ -371,6 +370,8 @@ static func create_rich_label(text, ...label_callbacks: Array) -> RichTextLabel:
 		func():
 			for callback: Callable in label_callbacks:
 				callback.call_deferred(label)
+			if not label.is_inside_tree():
+				get_tree().current_scene.add_child(label)
 	, Object.CONNECT_ONE_SHOT)
 	return label
 

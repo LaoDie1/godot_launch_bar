@@ -21,20 +21,15 @@ var conversation_messages_file := DataFile.instance("user://conversation_message
 
 
 func _ready() -> void:
-	Global.config.bind_object(self, "session/window_size", null, "size", func(pre, new_value): return new_value if mode == Window.MODE_WINDOWED else pre)
+	Global.config.bind_object(self, "session/window_size", null, "size")
 	Global.config.bind_object(conversation, "session/model", "", "model")
 	Global.config.bind_object(conversation, "session/base_url", "", "base_url")
 	Global.config.bind_object(conversation, "session/api_key", "", "api_key")
 	Global.config.bind_object(conversation, "session/message_memory_limit", null, "message_memory_limit")
-	Global.config.bind_object(model_button, "session/model", null, "text")
 	Global.config.bind_object(conversation, "session/prompt_enabled", null, "tool_mode")
 	Global.config.bind_object(conversation, "session/prompt_content", null, "tool_message")
 	
-	model_button.item_selected.connect(
-		func(index):
-			var model_data = model_button.get_item_metadata(index)
-			Global.config.set_value("session/model", model_data["model"])
-	)
+	# 模型按钮
 	Global.models_table.bind_method(
 		func(models_table):
 			model_button.clear()
@@ -48,6 +43,16 @@ func _ready() -> void:
 						"base_url": model["base_url"],
 					})
 	, true)
+	Global.config.bind_object(model_button, "session/model_idx", 0, "", func(_pre, idx):
+		if idx is int:
+			model_button.select(idx)
+		return idx
+	)
+	model_button.item_selected.connect(
+		func(index):
+			var model_data = model_button.get_item_metadata(index)
+			Global.config.set_value("session/model", model_data["model"])
+	)
 	
 	# 会话列表
 	conversation_messages_file.bind_object(conversation, "session_history_messages", null, "messages")
@@ -86,11 +91,17 @@ func _ready() -> void:
 	message_scroll_container.get_v_scroll_bar().gui_input.connect(
 		func(event):
 			if event is InputEventMouseButton:
-				if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-					auto_scroll_timer.stop()
+				if event.pressed:
+					if event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_WHEEL_UP:
+						auto_scroll_timer.stop()
 	)
 	get_tree().create_timer(0.1).timeout.connect(_scroll_down)
-
+	
+	ControlUtil.bind_textedit_submit_signal(send_text_box, func():
+		if send_text_box.text:
+			send_current_text()
+			send_text_box.accept_event()
+	)
 
 
 var last_session_item : SessionItem
@@ -117,6 +128,7 @@ func _reload_pressed(item: SessionItem):
 	send_text_box.text = user_message_data["content"]
 	if not item.item_data.get("assistant"):
 		last_session_item = item
+		last_session_item.update_message({}, {})
 	else:
 		last_session_item = SESSION_ITEM.instantiate()
 		session_item_list.add_child(last_session_item)
@@ -127,14 +139,6 @@ func _reload_pressed(item: SessionItem):
 func _scroll_down() -> void:
 	if visible:
 		message_scroll_container.scroll_vertical = int(message_scroll_container.get_v_scroll_bar().max_value)
-
-
-func _on_send_text_box_gui_input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		# 按回车发送消息
-		if event.keycode == KEY_ENTER and event.pressed and not (event.is_command_or_control_pressed() or event.shift_pressed or event.alt_pressed):
-			send_current_text()
-			
 
 
 func _on_send_text_box_text_changed() -> void:

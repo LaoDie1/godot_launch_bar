@@ -75,7 +75,17 @@ func _ready() -> void:
 	right_menu.menu_pressed.connect(_press_right_menu)
 	theme_changed.connect(
 		func():
-			right_menu.set_icon("/设置", get_tree().root.theme.get_icon("GDScript", "EditorIcons"))
+			#right_menu.set_icon("/设置", get_tree().root.theme.get_icon("GDScript", "EditorIcons"))
+			var theme_type = Global.config.get_value("program/theme_type")
+			var style : StyleBoxFlat = %Shadow.get_theme_stylebox("panel")
+			match theme_type:
+				Global.ThemeType.SYSTEM: 
+					if DisplayServer.is_dark_mode_supported() and DisplayServer.is_dark_mode():
+						style.shadow_color = Color(0,0,0,0.6)
+					else:
+						style.shadow_color = Color(1,1,1,0.6)
+				Global.ThemeType.WHITE: style.shadow_color = Color(1,1,1,0.6)
+				Global.ThemeType.DARK:  style.shadow_color = Color(0,0,0,0.6)
 	)
 
 

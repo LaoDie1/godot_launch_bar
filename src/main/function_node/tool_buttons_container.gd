@@ -60,8 +60,8 @@ func scan_load(dir: String) -> void:
 		# 配置这些工具按钮的应窗口的处理
 		var window : Window = button.window
 		if window:
-			window.title = "%s - Launch Bar" % button.text
 			window.hide()
+			window.title = "%s - Launch Bar" % button.text
 			window.close_requested.connect(window.hide)
 			window.window_input.connect(
 				func(event):

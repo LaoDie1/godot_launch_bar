@@ -94,40 +94,6 @@ static func instance(file_path: String, data_format : int = BYTES, default_data:
 func has_value(key) -> bool:
 	return data.has(key)
 
-## 获取数据值。如果没有这个值，则会自动添加默认值为这个 key 的值
-func get_value(key, default = null) -> Variant:
-	if not data.has(key):
-		if typeof(default) != TYPE_NIL:
-			set_value(key, default)
-		else:
-			return null
-	return data[key]
-
-## 设置数据
-func set_value(key, value) -> void:
-	if data.has(key):
-		var previous = data[key]
-		if typeof(previous) != typeof(value) or previous != value:
-			data[key] = value
-			# 更新绑定的对象的属性
-			if _bind_node_data_dict.has(key):
-				var items : Array = _bind_node_data_dict.get(key, [])
-				for item in items:
-					var object : Object = item[0]
-					if is_instance_valid(object):
-						var property : String = item[1]
-						var handle_callback : Callable = item[3]
-						if (typeof(object.get(property)) != typeof(value) or object.get(property) != value):
-							object.set(property, handle_callback.call(get_value(key), value) if handle_callback.is_valid() else value)
-			# 更新绑定值的方法
-			if _binded_method_dict.has(key):
-				for callback: Callable in _binded_method_dict[key]:
-					callback.call(value)
-			value_changed.emit(key, null, value)
-	else:
-		data[key] = value
-		value_changed.emit(key, null, value)
-
 ## 移除这个 key 的值
 func remove_value(key) -> bool:
 	return data.erase(key)
@@ -159,71 +125,123 @@ func set_value_by_object(object: Object, exclude_propertys: Array = []):
 		if not p_name in exclude_propertys and p_name in object:
 			set_value(p_name, object[p_name])
 
+## 获取数据值。如果没有这个值，则会自动添加默认值为这个 key 的值
+func get_value(key, default : Variant = null, no_exists_add: bool = false) -> Variant:
+	if not data.has(key):
+		if typeof(default) != TYPE_NIL and no_exists_add:
+			set_value(key, default)
+		else:
+			return default
+	return data[key]
+
+## 设置数据
+func set_value(key, value, force: bool = false, _emit_signal: bool = true) -> void:
+	var update_status : bool = false
+	var previous : Variant = null
+	if data.has(key):
+		previous = data[key]
+		if typeof(previous) != typeof(value) or previous != value or force:
+			data[key] = value
+			update_status = true
+	else:
+		data[key] = value
+		update_status = true
+	
+	if update_status:
+		# 更新绑定的对象的属性
+		if _bind_node_data_dict.has(key):
+			var items : Array = _bind_node_data_dict.get(key, [])
+			for item in items:
+				if is_instance_valid(item[0]):
+					var object : Object = item[0]
+					var property : String = item[1]
+					var handle_callback : Callable = item[3]
+					var condition : Callable = item[4]
+					if (typeof(object.get(property)) != typeof(value) or object.get(property) != value):
+						if not condition.is_valid() or condition.call(value):
+							object.set(property, handle_callback.call(previous, value) if handle_callback.is_valid() else value)
+		# 更新绑定值的方法
+		if _binded_method_dict.has(key):
+			for callback: Callable in _binded_method_dict[key]:
+				callback.call(value)
+		if _emit_signal:
+			value_changed.emit(key, previous, value)
+
 
 var _bind_node_data_dict: Dictionary[Variant, Array] = {}
+var _key_to_id_method : Dictionary[int, Array] = {}  # id = [Callable...]
 
 ## 绑定这个节点，自动更新属性。他会自动绑定不同类型的 [Control] 节点的属性和信号。
-func bind_object(object: Object, key, default_value = null, property : String = "", handle_callback : Callable = Callable()) -> void:
+##[br]
+##[br]- [param set_value_handle] 当前象的想法中对 [param object] 调用 [method Object.set] 修改其属性时，触发这个方法。[b]需要返回处理或原来的数据值[/b]
+func bind_object(
+	object: Object, 
+	key, 
+	default_value = null, 
+	property : String = "", 
+	set_value_handle : Callable = Callable(),
+	condition: Callable = Callable()
+) -> void:
 	if not object is Node and property.is_empty():
 		const MESSAGE = "如果绑定的对象不是 Node 类型，则需要传入要同步绑定修改的 property 参数"
 		push_error(MESSAGE)
 		printerr(MESSAGE)
 	
 	if property:
-		if not has_value(key):
-			if typeof(default_value) == TYPE_NIL:
-				default_value = object.get(property)
-			set_value(key, default_value)
-		_set_object_value(object, property, key, default_value)
-		_bind_node_data_dict.get_or_add(key, []).append([object, property, key, handle_callback])
 		if object is Window:
 			object.close_requested.connect(
-				func(): set_value(key, object.get(property))
+				func(): 
+					var value = object.get(property)
+					set_value(key, value)
 			)
-	
-	# 自动绑定节点的信号
-	if object is Control and not property:
-		var value_changed_callback : Callable = func(v):
-			set_value(key, handle_callback.call(get_value(key), v) if handle_callback.is_valid() else v)
-		# 绑定信号
-		if object is BaseButton:
-			if object is OptionButton:
-				property = "selected"
-				object.item_selected.connect(value_changed_callback)
-			elif object is ColorPickerButton:
-				property = "color"
-				object.color_changed.bind(value_changed_callback)
-			else:
-				property = "button_pressed"
-				object.toggled.connect(value_changed_callback)
-		elif object is Range:
-			property = "value"
-			object.value_changed.connect(value_changed_callback)
-		elif object is LineEdit:
-			property = "text"
-			object.text_changed.connect(value_changed_callback)
-		elif object is TextEdit:
-			property = "text"
-			object.text_changed.connect(
-				func(): set_value(key, object.text)
+		elif object is Node:
+			object.tree_exiting.connect(
+				func():
+					var value = object.get(property)
+					set_value(key, value)
 			)
-		elif object is SplitContainer:
-			property = "split_offsets"
-			object.dragged.connect(value_changed_callback)
-		else:
-			printerr("这个节点不是自动绑定的类型，请传入 property 参数的值")
 		
-		if property:
-			if not has_value(key):
-				if typeof(default_value) == TYPE_NIL:
-					default_value = object.get(property)
+	else:
+		# 自动绑定节点的信号
+		if object is Control:
+			var value_changed_callback : Callable = func(v):
+				set_value(key, v)
+			# 绑定信号
+			if object is BaseButton:
+				if object is OptionButton:
+					property = "selected"
+					object.item_selected.connect(value_changed_callback)
+				elif object is ColorPickerButton:
+					property = "color"
+					object.color_changed.bind(value_changed_callback)
+				else:
+					property = "button_pressed"
+					object.toggled.connect(value_changed_callback)
+			elif object is Range:
+				property = "value"
+				object.value_changed.connect(value_changed_callback)
+			elif object is LineEdit:
+				property = "text"
+				object.text_changed.connect(value_changed_callback)
+			elif object is TextEdit:
+				property = "text"
+				object.text_changed.connect(
+					func(): set_value(key, object.text)
+				)
+			elif object is SplitContainer:
+				property = "split_offsets"
+				object.dragged.connect(value_changed_callback)
 			else:
-				default_value = get_value(key, default_value)
-			object.set(property, default_value)
-
-func _set_object_value(object: Object, property: String, key, default_value = null):
-	if has_value(key) or default_value:
-		object.set(property, get_value(key, default_value))
+				printerr("这个节点不是自动绑定的类型，请传入 property 参数的值")
+	
+	if property:
+		_bind_node_data_dict.get_or_add(key, []).append([object, property, key, set_value_handle, condition])
+		if typeof(default_value) == TYPE_NIL:
+			set_value(key, get_value(key, object.get(property)), true)
+		else:
+			set_value(key, get_value(key, default_value), true)
+	else:
+		printerr("这个对象需要传入 property 参数绑定属性名: ", object)
 
 
 var _binded_method_dict: Dictionary = {}
@@ -239,6 +257,7 @@ func bind_method(key, callback: Callable, first_call: bool = false, default_valu
 	if first_call:
 		callback.call(get_value(key, default_value))
 
+
 ## 更新所有有关于绑定的节点的数据内容，从绑定的节点上获取数据，记录到当前数据缓存中。在退出程序前最好调用一次
 func update_data_by_bind_nodes() -> void:
 	for items in _bind_node_data_dict.values():
@@ -248,7 +267,7 @@ func update_data_by_bind_nodes() -> void:
 			var key = item[2]
 			var handle_callback : Callable = item[3]
 			var v : Variant = object.get(property)
-			set_value(key, handle_callback.call(get_value(key), v) if handle_callback.is_valid() else v)
+			set_value(key, v)
 
 ## 保存数据
 func save() -> bool:

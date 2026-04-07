@@ -752,24 +752,28 @@ static func get_all_empty_cells(
 
 
 ## 边缘点排序。这些点需要是边缘的左右相连的距离为 Vector2.ONE 的点，否则排序会失效
-static func sort_border_points(border_points: Array) -> Array:
+static func sort_border_points(border_points: Array, edge_dir: Array = []) -> Array:
 	if border_points.is_empty():
 		return []
-	var current : Vector2 = border_points[0]
+	if edge_dir.is_empty():
+		edge_dir = MathUtil.get_eight_directions()
+	var current = border_points[0]
+	if border_points[0] is Vector2:
+		edge_dir = edge_dir.map(func(v): return Vector2(v))
+	else:
+		edge_dir = edge_dir.map(func(v): return Vector2i(v))
 	var sort_list : Array = []
 	sort_list.append(current)
 	var visited : Dictionary = {}
 	visited[current] = null
 	var next_state : bool
-	const EDGE_DIR = [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]
 	while true:
 		next_state = false
-		for dir:Vector2 in MathUtil.get_eight_directions():
+		for dir in edge_dir:
 			if border_points.has(current + dir) and not visited.has(current + dir):
 				sort_list.append(current + dir)
-				# INFO 角落的点也添加到已经过的点，防止点往回走
-				if dir in EDGE_DIR:
-					for d in MathUtil.get_four_directions():
+				if dir in edge_dir:  # INFO 角落的点也添加到已经过的点，防止点往回走
+					for d in edge_dir:
 						visited[current + d] = null
 				visited[current + dir] = null
 				current += dir
@@ -777,4 +781,5 @@ static func sort_border_points(border_points: Array) -> Array:
 				break
 		if not next_state:
 			break
+	
 	return sort_list

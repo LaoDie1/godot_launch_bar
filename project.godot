@@ -16,9 +16,11 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="Godot启动条"
 run/main_scene="uid://c2aqgf2ybo2sv"
+config/use_custom_user_dir=true
 run/main_loop_type="Program"
-config/features=PackedStringArray("4.7", "Forward Plus")
+config/features=PackedStringArray("4.6", "Forward Plus")
 run/low_processor_mode=true
+boot_splash/bg_color=Color(1, 1, 1, 0)
 boot_splash/show_image=false
 boot_splash/stretch_mode=0
 boot_splash/use_filter=false
@@ -38,9 +40,11 @@ window/size/viewport_height=300
 window/size/borderless=true
 window/size/always_on_top=true
 window/size/transparent=true
+window/size/extend_to_title=true
 window/size/sharp_corners=true
 window/size/minimize_disabled=true
 window/size/maximize_disabled=true
+window/energy_saving/keep_screen_on=false
 window/subwindows/embed_subwindows=false
 window/per_pixel_transparency/allowed=true
 
@@ -51,7 +55,6 @@ enabled=PackedStringArray("res://addons/apprentice/plugin.cfg", "res://addons/ma
 [log]
 
 print_path=14
-display=31
 
 [rendering]
 

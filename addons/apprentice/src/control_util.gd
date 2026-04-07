@@ -35,13 +35,31 @@ static func click(
 ##[br][code]node[/code]  点击的节点
 ##[br][code]callable[/code]  回调方法
 ##[br][code]execute_once[/code]  连接一次
-static func connect_click_event(node: Control, callable: Callable, execute_once: bool = false):
-	node.gui_input.connect(func(event):
-		if InputUtil.is_click_left(event):
-			callable.call()
-	, Object.CONNECT_ONE_SHOT 
-		if execute_once 
-		else Object.CONNECT_ONE_SHOT
+static func bind_click_event(node: Control, callable: Callable, flags: int = 0):
+	node.gui_input.connect(
+		func(event):
+			if event is InputEventMouseButton:
+				callable.call(event.button_index, event.pressed)
+	, flags)
+
+static func bind_textedit_submit_signal(
+	textedit: TextEdit, 
+	callback: Callable, 
+	mask_key_flag: int = KEY_MASK_CMD_OR_CTRL | KEY_MASK_SHIFT | KEY_MASK_CTRL | KEY_MASK_ALT | KEY_MASK_META
+) -> void:
+	textedit.gui_input.connect(
+		func(event):
+			if event is InputEventKey:
+				if event.keycode == KEY_ENTER and event.pressed:
+					# 只要不按下下面的键，则视作发送
+					if not (
+						(event.is_command_or_control_pressed() and mask_key_flag & KEY_MASK_CMD_OR_CTRL == KEY_MASK_CMD_OR_CTRL)
+						or (event.shift_pressed and mask_key_flag & KEY_MASK_SHIFT == KEY_MASK_SHIFT)
+						or (event.ctrl_pressed and mask_key_flag & KEY_MASK_CTRL == KEY_MASK_CTRL)
+						or (event.meta_pressed and mask_key_flag & KEY_MASK_META == KEY_MASK_META)
+						or (event.alt_pressed and mask_key_flag & KEY_MASK_ALT == KEY_MASK_ALT)
+					):
+						callback.call()
 	)
 
 

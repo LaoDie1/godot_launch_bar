@@ -7,6 +7,19 @@
 [ext_resource type="PackedScene" uid="uid://bki05jo1nukoj" path="res://src/main/config_window/config_window.tscn" id="6_j0lu3"]
 [ext_resource type="PackedScene" uid="uid://bxw05qtlvyrw4" path="res://src/main/launch_bar_app_bar.tscn" id="8_vc1n6"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k46mk"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+draw_center = false
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+shadow_size = 6
+
 [node name="LaunchBar" type="MarginContainer" unique_id=2132299443 node_paths=PackedStringArray("input_text_box", "tool_buttons_container")]
 anchors_preset = 15
 anchor_right = 1.0
@@ -36,6 +49,11 @@ menu = NodePath("../IndicatorPopupMenu")
 unique_name_in_owner = true
 oversampling_override = 1.0
 title = "任务栏菜单"
+
+[node name="Shadow" type="Panel" parent="." unique_id=602360487]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_k46mk")
 
 [node name="BackgroundPanel" type="Panel" parent="." unique_id=1699471533]
 unique_name_in_owner = true
@@ -73,8 +91,6 @@ stretch_mode = 5
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.43137255)
 layout_mode = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6627451)
-theme_override_constants/shadow_outline_size = 4
 theme_override_font_sizes/font_size = 20
 text = "<启动条>"
 horizontal_alignment = 1

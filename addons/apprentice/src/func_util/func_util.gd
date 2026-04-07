@@ -625,6 +625,8 @@ static func for_rect_around(rect: Rect2, callback: Callable):
 
 
 ## 圆形遍历。这个回调方法需要有个 [Vector2] 类型的参数
+##[br]
+##[br]- [param include_radius] 包括最大长度 [code]radius[/code] 那一格的位置
 static func for_circle(radius: float, callback: Callable, include_radius: bool = true):
 	var rect = Rect2().grow(radius)
 	var center = rect.get_center()
@@ -890,7 +892,7 @@ static func path_move(
 	next_condition: Callable,
 	ready_next_callback: Callable = Callable(),
 	end_condition: Callable = Callable(),
-) -> Array[Vector2]:
+) -> Array:
 	var last : Array = [start]
 	if ready_next_callback.is_valid():
 		ready_next_callback.call(last)
@@ -924,7 +926,7 @@ static func path_move(
 		if ready_next_callback.is_valid():
 			ready_next_callback.call(last)
 	
-	return Array(pass_points.keys(), TYPE_VECTOR2, &"", null)
+	return pass_points.keys()
 
 
 ## 二值排序
@@ -1374,25 +1376,84 @@ class ThreadIteratorLoader:
 	
 	var _iterator
 	var _callback: Callable
-	func _init(iterator: Array, callback: Callable) -> void:
-		_iterator = iterator
+	func _init(iterator: Array, callback: Callable, bind_node: Node = null) -> void:
+		_iterator = iterator.duplicate(true)
 		_callback = callback
-		Engine.get_main_loop().root.add_child.call_deferred(self)
+		if bind_node:
+			bind_node.add_child.call_deferred(self)
+		else:
+			Engine.get_main_loop().root.add_child.call_deferred(self)
 	
 	var idx : int = 0
 	func _process(_delta):
 		var time = Time.get_ticks_msec()
-		while idx < _iterator:
+		while idx < _iterator.size():
 			_callback.call(_iterator[idx])
-			if Time.get_ticks_msec() - time > 0.05:
-				break
 			idx += 1
-		if idx == _iterator:
+			if Time.get_ticks_msec() - time > 20:
+				break
+		if idx == _iterator.size():
+			#call_thread_safe("emit_signal", "finished")
 			finished.emit()
 			queue_free()
+			set_process(false)
 
 
-## 线程遍历数组，处理那种高消耗的遍历卡顿的内容
-static func thread_for_array(list: Array, callback: Callable) -> ThreadIteratorLoader:
-	var loader = ThreadIteratorLoader.new(list, callback)
-	return loader
+## 线程遍历数组，处理那种高消耗的遍历卡顿的内容（伪线程，是在节点的 [method Node._process] 中处理的内容，而非真正的 [Thread]）
+static func thread_for_array(list: Array, callback: Callable, bind_node: Node = null) -> ThreadIteratorLoader:
+	return ThreadIteratorLoader.new(list, callback, bind_node)
+
+
+
+##[br]简化连续共线的点
+##[br]
+##[br]- [param points]: 原始点数组 (PackedVector2Array)
+##[br]- [param epsilon]: 容差值 (默认 0.1，值越大越宽松，允许轻微偏离直线的点被移除)
+##[br]- [param is_closed]: 是否为闭合多边形 (默认 true，会检查首尾点的连接)
+##[br]
+##[br]返回: 简化后的点数组
+static func simplify_collinear_points(points: PackedVector2Array, epsilon: float = 0.1, is_closed: bool = true) -> PackedVector2Array:
+	if points.size() < 3:
+		return points.duplicate()
+
+	var simplified = PackedVector2Array()
+	simplified.append(points[0]) # 始终保留第一个点
+
+	# 遍历中间点
+	for i in range(1, points.size() - 1):
+		var prev = simplified[simplified.size() - 1]
+		var curr = points[i]
+		var next = points[i + 1]
+
+		# 计算叉积：(curr - prev) cross (next - prev)
+		var cross = (curr - prev).cross(next - prev)
+		
+		# 如果叉积的绝对值大于容差，说明不共线，保留当前点
+		if abs(cross) > epsilon:
+			simplified.append(curr)
+
+	# 保留最后一个点
+	simplified.append(points[points.size() - 1])
+
+	# 如果是闭合多边形，额外检查首尾和倒数第二个点是否共线
+	if is_closed and simplified.size() >= 3:
+		var first = simplified[0]
+		var last = simplified[simplified.size() - 1]
+		var second_last = simplified[simplified.size() - 2]
+		
+		var cross = (second_last - last).cross(first - last)
+		if abs(cross) <= epsilon:
+			simplified.remove_at(simplified.size() - 2)
+	return simplified
+
+
+static func sort_points(points: Array) -> Array:
+	if points.is_empty():
+		return points
+	var point = points.pick_random()
+	return path_move(point, MathUtil.get_four_directions() if point is Vector2 else MathUtil.get_four_directions_i(),
+		func(next_point):
+			if points.has(next_point):
+				return true
+			return false
+	)
