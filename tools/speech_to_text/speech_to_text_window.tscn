@@ -7,7 +7,7 @@
 
 [node name="SpeechToText" type="Window" unique_id=1567067319]
 oversampling_override = 1.0
-initial_position = 2
+initial_position = 4
 size = Vector2i(700, 600)
 script = ExtResource("1_o8w06")
 
@@ -93,9 +93,11 @@ unique_name_in_owner = true
 wait_time = 0.3
 
 [node name="StopButton" type="Button" parent="Control/MarginContainer/MarginContainer/VBoxContainer" unique_id=1204933879]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 48)
 layout_mode = 2
 size_flags_horizontal = 4
+disabled = true
 text = "停止识别"
 
 [connection signal="timeout" from="Control/MarginContainer/MarginContainer/VBoxContainer/RunningLabel/RunningTextTimer" to="." method="_on_running_text_timer_timeout"]

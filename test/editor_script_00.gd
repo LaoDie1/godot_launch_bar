@@ -5,11 +5,5 @@ extends EditorScript
 func _run() -> void:
 	pass
 	
-	#FFMpegUtil.ffmpeg_path = FileUtil.find_program_path("ffmpeg")
-	#var video_picture = FFMpegUtil.get_video_cover_fast(r"C:\Users\z\Videos\其他\xv\X2Twitter.com_ctUSrTIWEhYejHiq_1920p.mp4")
-	#print(video_picture)
-	
-	
-	print(SystemUtil.find_pids_by_port("28666"))
-	
-	
+	for __ in 5:
+		print(str(Time.get_unix_time_from_system()).md5_text())

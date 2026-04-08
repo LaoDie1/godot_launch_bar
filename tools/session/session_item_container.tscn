@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://bdlxen3jys4g2"]
+
+[ext_resource type="Script" uid="uid://lw6xpdbgojt" path="res://tools/session/session_item_container.gd" id="1_xnlur"]
+[ext_resource type="Script" uid="uid://co4nsocgm00gg" path="res://src/main/conversation.gd" id="2_ernvc"]
+
+[node name="SessionItemContainer" type="ScrollContainer" unique_id=1116906664]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+script = ExtResource("1_xnlur")
+metadata/_edit_group_ = true
+
+[node name="Conversation" type="Node" parent="." unique_id=1125215585]
+unique_name_in_owner = true
+script = ExtResource("2_ernvc")
+base_url = "https://api.moonshot.cn/v1/chat/completions"
+model = "kimi-k2.5"
+stream = true
+metadata/_custom_type_script = "uid://co4nsocgm00gg"
+
+[node name="AutoScrollTimer" type="Timer" parent="." unique_id=1002967864]
+unique_name_in_owner = true
+wait_time = 0.2
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1984026741]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 64
+
+[node name="SessionItemList" type="VBoxContainer" parent="MarginContainer" unique_id=1579900229]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 0

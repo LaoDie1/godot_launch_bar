@@ -5,7 +5,7 @@
 [node name="ConfigWindow" type="Window" unique_id=726063505]
 oversampling_override = 1.0
 title = "设置"
-initial_position = 2
+initial_position = 4
 size = Vector2i(600, 400)
 script = ExtResource("1_w441p")
 

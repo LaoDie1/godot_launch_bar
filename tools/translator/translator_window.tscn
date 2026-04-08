@@ -10,7 +10,7 @@ _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\">
 
 [node name="TranslatorWindow" type="Window" unique_id=1136899437 node_paths=PackedStringArray("translate_result_box", "conversation", "scroll_container")]
 oversampling_override = 1.0
-initial_position = 2
+initial_position = 4
 size = Vector2i(700, 500)
 script = ExtResource("1_cljdc")
 translate_result_box = NodePath("MarginContainer/VBoxContainer2/ResultContainer/ScrollContainer/MarginContainer/VBoxContainer/TransResultBox")

@@ -20,7 +20,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 shadow_size = 6
 
-[node name="LaunchBar" type="MarginContainer" unique_id=2132299443 node_paths=PackedStringArray("input_text_box", "tool_buttons_container")]
+[node name="LaunchBar" type="MarginContainer" unique_id=2132299443 node_paths=PackedStringArray("input_text_box", "tool_buttons_container", "config_window")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -33,6 +33,7 @@ theme_override_constants/margin_bottom = 16
 script = ExtResource("1_x70cw")
 input_text_box = NodePath("MarginContainer/VBoxContainer/input_text_box")
 tool_buttons_container = NodePath("MarginContainer/VBoxContainer/tool_buttons_container")
+config_window = NodePath("ConfigWindow")
 
 [node name="DragMoveControl" type="Control" parent="." unique_id=1084043786]
 layout_mode = 2
@@ -79,17 +80,18 @@ theme_override_constants/separation = 16
 layout_mode = 2
 alignment = 1
 
-[node name="TextureRect" type="TextureRect" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=1803725582]
+[node name="ProgramIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=1803725582]
 clip_contents = true
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
+mouse_filter = 0
 texture = ExtResource("3_x70cw")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="LaunchBarNameLabel" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=1921204457]
 unique_name_in_owner = true
-modulate = Color(1, 1, 1, 0.43137255)
+modulate = Color(1, 1, 1, 0.54901963)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "<启动条>"

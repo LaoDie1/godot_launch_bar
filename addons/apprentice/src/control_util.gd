@@ -42,6 +42,8 @@ static func bind_click_event(node: Control, callable: Callable, flags: int = 0):
 				callable.call(event.button_index, event.pressed)
 	, flags)
 
+
+## 绑定 [TextEdit] 节点的按键输入，如果按下 Enter 键则触发 [param callback] 回调
 static func bind_textedit_submit_signal(
 	textedit: TextEdit, 
 	callback: Callable, 

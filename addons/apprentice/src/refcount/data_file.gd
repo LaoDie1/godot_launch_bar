@@ -135,6 +135,8 @@ func get_value(key, default : Variant = null, no_exists_add: bool = false) -> Va
 	return data[key]
 
 ## 设置数据
+##[br]
+##[br]- [param force] 哪怕值相同也进行赋值处理，进行强制更新
 func set_value(key, value, force: bool = false, _emit_signal: bool = true) -> void:
 	var update_status : bool = false
 	var previous : Variant = null
@@ -147,7 +149,7 @@ func set_value(key, value, force: bool = false, _emit_signal: bool = true) -> vo
 		data[key] = value
 		update_status = true
 	
-	if update_status:
+	if update_status or force:
 		# 更新绑定的对象的属性
 		if _bind_node_data_dict.has(key):
 			var items : Array = _bind_node_data_dict.get(key, [])
@@ -157,9 +159,12 @@ func set_value(key, value, force: bool = false, _emit_signal: bool = true) -> vo
 					var property : String = item[1]
 					var handle_callback : Callable = item[3]
 					var condition : Callable = item[4]
-					if (typeof(object.get(property)) != typeof(value) or object.get(property) != value):
-						if not condition.is_valid() or condition.call(value):
-							object.set(property, handle_callback.call(previous, value) if handle_callback.is_valid() else value)
+					if (typeof(object.get(property)) != typeof(value) 
+						or object.get(property) != value
+						or force
+						or (not condition.is_valid() or condition.call(value))
+					):
+						object.set(property, handle_callback.call(previous, value) if handle_callback.is_valid() else value)
 		# 更新绑定值的方法
 		if _binded_method_dict.has(key):
 			for callback: Callable in _binded_method_dict[key]:
@@ -265,7 +270,6 @@ func update_data_by_bind_nodes() -> void:
 			var object : Object = item[0]
 			var property : String = item[1]
 			var key = item[2]
-			var handle_callback : Callable = item[3]
 			var v : Variant = object.get(property)
 			set_value(key, v)
 

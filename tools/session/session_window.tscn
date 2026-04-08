@@ -1,22 +1,18 @@
 [gd_scene format=3 uid="uid://pc5fnpp8ycsl"]
 
 [ext_resource type="Script" uid="uid://bdc0s3lx7ue17" path="res://tools/session/session_window.gd" id="1_807wb"]
-[ext_resource type="Script" uid="uid://co4nsocgm00gg" path="res://src/main/conversation.gd" id="2_y8dgk"]
+[ext_resource type="Script" uid="uid://co4nsocgm00gg" path="res://src/main/conversation.gd" id="2_ow7x8"]
 
 [node name="SessionWindow" type="Window" unique_id=1297276326]
 oversampling_override = 1.0
-initial_position = 2
+initial_position = 4
 size = Vector2i(600, 600)
 transient = true
 transient_to_focused = true
 script = ExtResource("1_807wb")
 
-[node name="Conversation" type="Node" parent="." unique_id=1289993192]
-unique_name_in_owner = true
-script = ExtResource("2_y8dgk")
-base_url = "https://api.moonshot.cn/v1/chat/completions"
-model = "kimi-k2.5"
-stream = true
+[node name="TitleConversation" type="Node" parent="." unique_id=179896730]
+script = ExtResource("2_ow7x8")
 metadata/_custom_type_script = "uid://co4nsocgm00gg"
 
 [node name="Panel" type="Panel" parent="." unique_id=1217337429]
@@ -42,29 +38,33 @@ metadata/_edit_lock_ = true
 [node name="VSplitContainer" type="VSplitContainer" parent="MarginContainer" unique_id=1565110123]
 layout_mode = 2
 
-[node name="MessageScrollContainer" type="ScrollContainer" parent="MarginContainer/VSplitContainer" unique_id=1067918089]
+[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VSplitContainer" unique_id=266125898]
+layout_mode = 2
+size_flags_vertical = 3
+split_offsets = PackedInt32Array(100)
+split_offset = 100
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VSplitContainer/HSplitContainer" unique_id=2099238502]
+layout_mode = 2
+
+[node name="SessionItemNameContainer" type="ItemList" parent="MarginContainer/VSplitContainer/HSplitContainer/VBoxContainer" unique_id=1777542564]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-horizontal_scroll_mode = 0
 
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VSplitContainer/MessageScrollContainer" unique_id=1526734619]
+[node name="CreateSessionButton" type="Button" parent="MarginContainer/VSplitContainer/HSplitContainer/VBoxContainer" unique_id=2114242862]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 64
+text = "创建新会话"
 
-[node name="SessionItemList" type="VBoxContainer" parent="MarginContainer/VSplitContainer/MessageScrollContainer/MarginContainer" unique_id=554877299]
+[node name="SessionGroupContainer" type="TabContainer" parent="MarginContainer/VSplitContainer/HSplitContainer" unique_id=1440981127]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 0
+tabs_visible = false
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VSplitContainer" unique_id=1983023866]
 layout_mode = 2
 theme_override_constants/separation = 16
+metadata/_edit_group_ = true
 
 [node name="HSeparator" type="HSeparator" parent="MarginContainer/VSplitContainer/VBoxContainer" unique_id=1896886419]
 modulate = Color(1, 1, 1, 0.32156864)
@@ -91,8 +91,10 @@ layout_mode = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
+text = "我在测试功能，你只用象征性回复一下即可"
 placeholder_text = "在这里输入你的问题，按  Enter↵  键或点击下方按钮进行发送"
 wrap_mode = 1
+caret_blink = true
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VSplitContainer/VBoxContainer" unique_id=1470312701]
 layout_mode = 2
@@ -105,12 +107,12 @@ size_flags_horizontal = 10
 disabled = true
 text = "发送"
 
-[node name="AutoScrollTimer" type="Timer" parent="." unique_id=1002061572]
-unique_name_in_owner = true
-wait_time = 0.2
-
+[connection signal="responded_message" from="TitleConversation" to="." method="_on_title_conversation_responded_message"]
+[connection signal="responded_stream_end" from="TitleConversation" to="." method="_on_title_conversation_responded_stream_end"]
+[connection signal="item_activated" from="MarginContainer/VSplitContainer/HSplitContainer/VBoxContainer/SessionItemNameContainer" to="." method="_on_session_item_name_container_item_activated"]
+[connection signal="pressed" from="MarginContainer/VSplitContainer/HSplitContainer/VBoxContainer/CreateSessionButton" to="." method="create_session"]
 [connection signal="item_selected" from="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer2/ModelsButton" to="." method="_on_models_button_item_selected"]
 [connection signal="pressed" from="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer2/ModelsButton" to="." method="_on_models_button_pressed"]
 [connection signal="gui_input" from="MarginContainer/VSplitContainer/VBoxContainer/SendTextBox" to="." method="_on_send_text_box_gui_input"]
+[connection signal="text_changed" from="MarginContainer/VSplitContainer/VBoxContainer/SendTextBox" to="." method="_on_send_text_box_text_changed"]
 [connection signal="pressed" from="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer/SendButton" to="." method="send_current_text"]
-[connection signal="timeout" from="AutoScrollTimer" to="." method="_scroll_down"]

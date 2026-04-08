@@ -11,6 +11,7 @@ extends MarginContainer
 
 @export var input_text_box: TextEdit
 @export var tool_buttons_container: HFlowContainer
+@export var config_window: Window
 
 static var instance: LaunchBar
 

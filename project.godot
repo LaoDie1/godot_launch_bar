@@ -14,7 +14,8 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
-config/name="Godot启动条"
+config/name="LaunchBar"
+config/description="启动条程序"
 run/main_scene="uid://c2aqgf2ybo2sv"
 config/use_custom_user_dir=true
 run/main_loop_type="Program"
@@ -50,7 +51,12 @@ window/per_pixel_transparency/allowed=true
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/apprentice/plugin.cfg", "res://addons/markdownlabel/plugin.cfg", "res://addons/script_comment_menu/plugin.cfg")
+enabled=PackedStringArray("res://addons/apprentice/plugin.cfg", "res://addons/godot-sqlite/plugin.cfg", "res://addons/markdownlabel/plugin.cfg", "res://addons/script_comment_menu/plugin.cfg")
+
+[gui]
+
+theme/default_font_multichannel_signed_distance_field=true
+theme/default_font_generate_mipmaps=true
 
 [log]
 

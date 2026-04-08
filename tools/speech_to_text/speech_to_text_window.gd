@@ -20,9 +20,9 @@ func _ready() -> void:
 	# 绑定信号
 	stream_req.responded.connect(_on_stream_chunk)
 	stream_req.connected.connect(_on_connected)
-	stream_req.responded_error.connect(_on_error)
-	stream_req.connect_closed.connect(_on_closed)
 	stream_req.received_headers.connect(_on_stream_request_received_headers)
+	stream_req.connect_closed.connect(_on_closed)
+	stream_req.responded_error.connect(_on_error)
 	
 	simple_menu.init_menu({
 		"文件": [ "保存文件" ],
@@ -45,7 +45,7 @@ func _ready() -> void:
 		var code : String = FileUtil.read_as_string("res://tools/speech_to_text/stream_transcribe.py")
 		FileUtil.make_dir_if_not_exists(python_script_path.get_base_dir())
 		FileUtil.write_as_string(python_script_path, code)
-	
+	# 启动 python 文字识别服务
 	var thread := Thread.new()
 	thread.start(
 		func():
@@ -63,6 +63,7 @@ func _ready() -> void:
 		func(files):
 			start_transcribe(files[0])
 	)
+
 
 func _exit_tree() -> void:
 	if python_server_pid != 0:
@@ -90,18 +91,21 @@ func start_transcribe(video_path: String):
 	stream_req.request(transcribe_url + video_path.replace("\\", "/").uri_encode(), PackedStringArray(), HTTPClient.METHOD_GET)
 	result_text_box.text = ""
 
+
 func stop() -> void:
 	if _current_task_id:
 		var stop_url : String = Global.config.get_value("speech_to_text/stop_url", "http://127.0.0.1:28666/stop?task_id=")
 		stream_req.request(stop_url + _current_task_id)
 		print("  已打断Python识别")
 		_current_task_id = ""
+		%StopButton.disabled = true
 
 
 func _on_stream_request_received_headers(headers: Dictionary):
 	if headers.has("x-task-id"):
 		_current_task_id = headers["x-task-id"]
 		print("成功获取到 Task ID: ", _current_task_id)
+		%StopButton.disabled = false
 
 # 实时接收流式文字（核心！）
 func _on_stream_chunk(chunk: PackedByteArray):
@@ -118,6 +122,7 @@ func _on_stream_chunk(chunk: PackedByteArray):
 func _on_error(status):
 	print("错误：", status)
 	_current_task_id = ""
+	%StopButton.disabled = true
 
 func _on_connected():
 	print("连接成功，正在识别...")
@@ -125,6 +130,8 @@ func _on_connected():
 func _on_closed():
 	print("转写完成！")
 	_current_task_id = ""
+	%StopButton.disabled = true
+
 
 const RUNNING_TEXT_LIST = ["识别中", "识别中.", "识别中..", "识别中...", "识别中....", "识别中.....",]
 var _running_number: int = 0

@@ -17,6 +17,9 @@ func _enter_tree() -> void:
 	hide()
 
 func _ready() -> void:
+	if not visible:
+		await visibility_changed
+	
 	if LaunchBar.instance:
 		for child in LaunchBar.instance.tool_buttons_container.get_children():
 			if child is BaseProgramButton:
@@ -43,15 +46,20 @@ func _ready() -> void:
 	Global.config.bind_method("program/show_topbar", func(status):
 		if status:
 			popup()
+			WindowServer.set_window_visible(self, true)
 			WindowServer.register_app_bar(self, 2, 50)
 		else:
-			WindowServer.unregister_app_bar(self)
+			if visible:
+				WindowServer.unregister_app_bar(self)
+				WindowServer.set_window_visible(self, false)
 	, true, false)
 	
-	get_tree().create_timer(1).timeout.connect(
-		func(): WindowServer.set_window_taskbar_icon_visible(self, false)
+	get_tree().create_timer(0.5).timeout.connect(
+		func(): 
+			if not visible:
+				await visibility_changed
+			WindowServer.set_window_taskbar_icon_visible(self, false)
 	)
-	
 	focus_entered.connect(
 		func():
 			WindowServer.focus_window(self)
@@ -78,6 +86,28 @@ func _ready() -> void:
 		func(files):
 			message_box.text += files[0]
 	)
+	
+	%ProgramIcon.gui_input.connect(
+		func(event):
+			if event is InputEventMouseButton:
+				if event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+					%ProgramMenu.popup(Rect2( event.position, Vector2() ))
+	)
+	var program_menu_wrapper := MenuWrapper.new(%ProgramMenu)
+	program_menu_wrapper.init_item([
+		"设置", "-", "关于"
+	])
+	program_menu_wrapper.menu_pressed.connect(
+		func(_id, menu_path):
+			match menu_path:
+				"/设置":
+					LaunchBar.instance.config_window.popup()
+				"/关于":
+					%AboutPopup.popup()
+				_:
+					printerr("没有这个菜单的功能:", menu_path)
+	)
+
 
 func _exit_tree() -> void:
 	WindowServer.unregister_app_bar(self)

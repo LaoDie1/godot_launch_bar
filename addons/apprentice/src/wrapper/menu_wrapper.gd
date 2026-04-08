@@ -27,6 +27,8 @@ var root_menu: PopupMenu:
 		root_menu = v
 		_register_menu(-1, "/", root_menu)
 
+func _init(menu: PopupMenu = null) -> void:
+	self.root_menu = menu
 
 ## 初始化菜单
 func init_item(data: Variant):

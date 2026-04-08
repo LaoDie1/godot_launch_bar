@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cfqqu5oj5rdmh"]
+
+[ext_resource type="Script" uid="uid://dx8r4cjn76dhj" path="res://test/test_sqlite/test_sqlite.gd" id="1_8bl3l"]
+
+[node name="test_sqlite" type="Node2D" unique_id=444804538]
+script = ExtResource("1_8bl3l")

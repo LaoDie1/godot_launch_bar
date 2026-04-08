@@ -762,8 +762,10 @@ static func sort_border_points(border_points: Array, edge_dir: Array = []) -> Ar
 		edge_dir = edge_dir.map(func(v): return Vector2(v))
 	else:
 		edge_dir = edge_dir.map(func(v): return Vector2i(v))
+	
 	var sort_list : Array = []
 	sort_list.append(current)
+	
 	var visited : Dictionary = {}
 	visited[current] = null
 	var next_state : bool

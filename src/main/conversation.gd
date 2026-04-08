@@ -126,7 +126,7 @@ func send(message: String) -> void:
 	var count : int = 0
 	for idx in range(messages.size()-1, -1, -1):
 		var item = messages[idx]
-		# 倒着向上查找
+		# 倒着向上查找，只将 role 和 content 中的数据作为有效数据，添加到发送的数据列表中
 		if last_role != item["role"] and item["role"]:
 			last_role = item["role"]
 			temp_list.push_back({

@@ -11,9 +11,10 @@ extends ScrollContainer
 @export var child_container: HBoxContainer
 
 func _ready() -> void:
-	child_container.resized.connect(update_width, Object.CONNECT_DEFERRED)
+	await visibility_changed
+	resized.connect(update_width)
 	update_width.call_deferred()
 
 func update_width():
-	var max_width : float = get_parent_area_size().x - text_edit.custom_minimum_size.x
+	var max_width : float = get_parent_control().size.x - text_edit.custom_minimum_size.x
 	self.custom_minimum_size.x = minf(max_width, child_container.size.x)
