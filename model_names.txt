@@ -28,7 +28,7 @@
 			},
 			{
 				"base_url": "https://api.deepseek.com/v1/chat/completions",
-				"model": "deepseek-coder"
+				"model": "deepseek-reasoner"
 			}
 		],
 		"name": "deepseek"

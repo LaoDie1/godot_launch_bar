@@ -9,8 +9,6 @@
 class_name SessionItemContainer
 extends ScrollContainer
 
-signal sent_first_message(message: Dictionary)
-
 const SESSION_ITEM = preload("uid://d4ft7r0p0pskd")
 
 @onready var session_item_list: VBoxContainer = %SessionItemList
@@ -113,13 +111,10 @@ func send_current_text(text: String, uid = -1) -> void:
 		"session_id": session_id,
 		"role": "user",
 		"content": text,
-		"create_time": Time.get_unix_time_from_system(),
 	}
 	session_db.insert_row("messages", user_data)
 	uid = session_db.last_insert_rowid
 	user_data["uid"] = uid
-	if conversation.messages.is_empty():
-		sent_first_message.emit(user_data)
 	var session_item : SessionItem = _create_new_session_item()
 	session_item.update_message(user_data, {
 		"role": "assistant",

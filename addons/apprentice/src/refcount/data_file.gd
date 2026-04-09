@@ -273,15 +273,20 @@ func update_data_by_bind_nodes() -> void:
 			var v : Variant = object.get(property)
 			set_value(key, v)
 
+var _last_save_hash_value: int = -1
 ## 保存数据
 func save() -> bool:
 	if file_path:
-		make_dir_if_not_exists(file_path.get_base_dir())
-		match data_format:
-			BYTES:
-				return write_as_bytes(file_path, data)
-			STRING:
-				return write_as_str_var(file_path, data)
+		if data.hash() != _last_save_hash_value:
+			_last_save_hash_value = data.hash()
+			make_dir_if_not_exists(file_path.get_base_dir())
+			match data_format:
+				BYTES:
+					return write_as_bytes(file_path, data)
+				STRING:
+					return write_as_str_var(file_path, data)
+		else:
+			print("数据未发生改变，未执行保存")
 	else:
 		printerr("没有设置文件名，保存失败")
 	return false

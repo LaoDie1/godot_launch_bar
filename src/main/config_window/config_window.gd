@@ -38,13 +38,13 @@ func get_value_tree(type_key: String) -> Tree:
 		var value_tree := Tree.new()
 		type_key_to_value_tree_dict[type_key] = value_tree
 		value_tree.columns = 2
-		value_tree.column_titles_visible = true
+		#value_tree.column_titles_visible = false
+		#value_tree.set_column_title(0, "键名")
+		#value_tree.set_column_title(1, "属性值")
 		value_tree.select_mode =Tree.SELECT_ROW 
 		value_tree.set_column_clip_content(0, false)
 		value_tree.set_column_expand(1, true)
 		#value_tree.set_column_custom_minimum_width(0, 200)
-		value_tree.set_column_title(0, "键名")
-		value_tree.set_column_title(1, "属性值")
 		value_tree.name = type_key.validate_node_name()
 		value_tree_container.add_child(value_tree, true)
 		value_tree.hide_root = true

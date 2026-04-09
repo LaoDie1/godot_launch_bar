@@ -12,8 +12,8 @@ enum ThemeType {
 	WHITE,
 }
 
-var config : DataFile = DataFile.instance("user://program_global.data", DataFile.STRING)
 var models_table: BindPropertyItem = BindPropertyItem.new("models_table", [])
+var config : DataFile = DataFile.instance("user://program_global.data", DataFile.STRING)
 var config_item_hint: DataFile = DataFile.instance("")
 
 var windows: Array[Window] = []

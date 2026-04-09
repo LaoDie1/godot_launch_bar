@@ -38,27 +38,43 @@ metadata/_edit_lock_ = true
 [node name="VSplitContainer" type="VSplitContainer" parent="MarginContainer" unique_id=1565110123]
 layout_mode = 2
 
-[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VSplitContainer" unique_id=266125898]
+[node name="MessagesContainer" type="HSplitContainer" parent="MarginContainer/VSplitContainer" unique_id=266125898]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 split_offsets = PackedInt32Array(100)
 split_offset = 100
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VSplitContainer/HSplitContainer" unique_id=2099238502]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VSplitContainer/MessagesContainer" unique_id=2099238502]
 layout_mode = 2
 
-[node name="SessionItemNameContainer" type="ItemList" parent="MarginContainer/VSplitContainer/HSplitContainer/VBoxContainer" unique_id=1777542564]
+[node name="CreateSessionButton" type="Button" parent="MarginContainer/VSplitContainer/MessagesContainer/VBoxContainer" unique_id=2114242862]
+layout_mode = 2
+text = "创建新会话"
+
+[node name="SessionTitleContainer" type="ItemList" parent="MarginContainer/VSplitContainer/MessagesContainer/VBoxContainer" unique_id=1777542564]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="CreateSessionButton" type="Button" parent="MarginContainer/VSplitContainer/HSplitContainer/VBoxContainer" unique_id=2114242862]
-layout_mode = 2
-text = "创建新会话"
+[node name="SessionTitlePopupMenu" type="PopupMenu" parent="MarginContainer/VSplitContainer/MessagesContainer/VBoxContainer/SessionTitleContainer" unique_id=1649005872]
+unique_name_in_owner = true
 
-[node name="SessionGroupContainer" type="TabContainer" parent="MarginContainer/VSplitContainer/HSplitContainer" unique_id=1440981127]
+[node name="VBoxContainer2" type="VBoxContainer" parent="MarginContainer/VSplitContainer/MessagesContainer" unique_id=409926812]
+layout_mode = 2
+
+[node name="SessionTitleLabel" type="Label" parent="MarginContainer/VSplitContainer/MessagesContainer/VBoxContainer2" unique_id=241245004]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.6431373)
+layout_mode = 2
+text = "<无会话>"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SessionGroupContainer" type="TabContainer" parent="MarginContainer/VSplitContainer/MessagesContainer/VBoxContainer2" unique_id=1440981127]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_vertical = 3
 tabs_visible = false
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VSplitContainer" unique_id=1983023866]
@@ -108,9 +124,9 @@ disabled = true
 text = "发送"
 
 [connection signal="responded_message" from="TitleConversation" to="." method="_on_title_conversation_responded_message"]
-[connection signal="responded_stream_end" from="TitleConversation" to="." method="_on_title_conversation_responded_stream_end"]
-[connection signal="item_activated" from="MarginContainer/VSplitContainer/HSplitContainer/VBoxContainer/SessionItemNameContainer" to="." method="_on_session_item_name_container_item_activated"]
-[connection signal="pressed" from="MarginContainer/VSplitContainer/HSplitContainer/VBoxContainer/CreateSessionButton" to="." method="create_session"]
+[connection signal="responded_stream_end" from="TitleConversation" to="." method="_on_title_conversation_responded_end"]
+[connection signal="pressed" from="MarginContainer/VSplitContainer/MessagesContainer/VBoxContainer/CreateSessionButton" to="." method="create_new_session"]
+[connection signal="item_activated" from="MarginContainer/VSplitContainer/MessagesContainer/VBoxContainer/SessionTitleContainer" to="." method="_on_session_item_name_container_item_activated"]
 [connection signal="item_selected" from="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer2/ModelsButton" to="." method="_on_models_button_item_selected"]
 [connection signal="pressed" from="MarginContainer/VSplitContainer/VBoxContainer/HBoxContainer2/ModelsButton" to="." method="_on_models_button_pressed"]
 [connection signal="gui_input" from="MarginContainer/VSplitContainer/VBoxContainer/SendTextBox" to="." method="_on_send_text_box_gui_input"]
