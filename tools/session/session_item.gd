@@ -5,7 +5,6 @@
 # - datetime: 2026-04-02 00:21:28
 # - version: 4.7.0.dev2
 #============================================================
-class_name SessionItem
 extends MarginContainer
 
 @onready var user_message_box: TextEdit = %UserMessageBox

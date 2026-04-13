@@ -15,7 +15,9 @@ func _get_tool_name() -> String:
 			return "翻译"
 		_:
 			return "Translator"
-
+ 
+func _get_order() -> int:
+	return 1
 
 func _put_message(message: String):
 	window.translate(message)

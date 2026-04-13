@@ -78,7 +78,6 @@ var _current_task_id : String:
 		else:
 			%RunningTextTimer.stop()
 			%RunningLabel.text = "(完成)"
-
 # 开始请求
 func start_transcribe(video_path: String):
 	print("  开始识别文件：%s" % video_path)

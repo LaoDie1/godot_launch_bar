@@ -1,0 +1,90 @@
+[gd_scene format=3 uid="uid://cbjps3yfu86kb"]
+
+[ext_resource type="Script" uid="uid://bnqvilnkoex1f" path="res://tools/super_iterative_analyzer/super_iterative_analyzer_window.gd" id="1_wrwoa"]
+[ext_resource type="Script" uid="uid://b7lakosyf56yp" path="res://tools/super_iterative_analyzer/mul_session_container_panel.gd" id="2_dlked"]
+
+[node name="SuperIterativeAnalyzerWindow" type="Window" unique_id=232981232]
+oversampling_override = 1.0
+initial_position = 4
+size = Vector2i(800, 1000)
+script = ExtResource("1_wrwoa")
+
+[node name="Control" type="Control" parent="." unique_id=1459508660]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_lock_ = true
+
+[node name="MarginContainer" type="MarginContainer" parent="Control" unique_id=155321397]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="HSplitContainer" type="HSplitContainer" parent="Control/MarginContainer" unique_id=863692718]
+layout_mode = 2
+split_offsets = PackedInt32Array(175)
+split_offset = 175
+
+[node name="MarginContainer2" type="MarginContainer" parent="Control/MarginContainer/HSplitContainer" unique_id=1328403266]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="Control/MarginContainer/HSplitContainer/MarginContainer2" unique_id=2051449015]
+layout_mode = 2
+
+[node name="SessionItems" type="Tree" parent="Control/MarginContainer/HSplitContainer/MarginContainer2" unique_id=48121104]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/MarginContainer/HSplitContainer" unique_id=1525330258]
+layout_mode = 2
+
+[node name="VSplitContainer" type="VSplitContainer" parent="Control/MarginContainer/HSplitContainer/MarginContainer" unique_id=432471447]
+layout_mode = 2
+split_offsets = PackedInt32Array(-150)
+split_offset = -150
+
+[node name="Control" type="Control" parent="Control/MarginContainer/HSplitContainer/MarginContainer/VSplitContainer" unique_id=467662773]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Panel" type="Panel" parent="Control/MarginContainer/HSplitContainer/MarginContainer/VSplitContainer/Control" unique_id=393462354]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/MarginContainer/HSplitContainer/MarginContainer/VSplitContainer/Control" unique_id=160894723]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+
+[node name="MulSessionContainerPanel" type="VBoxContainer" parent="Control/MarginContainer/HSplitContainer/MarginContainer/VSplitContainer/Control/ScrollContainer" unique_id=1809881067]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("2_dlked")
+
+[node name="SubmitMessageBox" type="TextEdit" parent="Control/MarginContainer/HSplitContainer/MarginContainer/VSplitContainer" unique_id=1424628128]
+unique_name_in_owner = true
+layout_mode = 2
+text = "我想要学习口才"
+placeholder_text = "输入内容按 Enter 键发送"
+wrap_mode = 1

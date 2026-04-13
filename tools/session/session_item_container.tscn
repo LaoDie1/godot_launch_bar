@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bdlxen3jys4g2"]
 
-[ext_resource type="Script" uid="uid://lw6xpdbgojt" path="res://tools/session/session_item_container.gd" id="1_xnlur"]
+[ext_resource type="Script" uid="uid://cc5f8fgc3spks" path="res://tools/session/session_item_container.gd" id="1_xnlur"]
 [ext_resource type="Script" uid="uid://co4nsocgm00gg" path="res://src/main/conversation.gd" id="2_ernvc"]
 
 [node name="SessionItemContainer" type="ScrollContainer" unique_id=1116906664]

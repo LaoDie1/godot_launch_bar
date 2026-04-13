@@ -100,5 +100,10 @@ size_flags_horizontal = 4
 disabled = true
 text = "停止识别"
 
+[connection signal="connect_closed" from="StreamRequest" to="." method="_on_closed"]
+[connection signal="connected" from="StreamRequest" to="." method="_on_connected"]
+[connection signal="received_headers" from="StreamRequest" to="." method="_on_stream_request_received_headers"]
+[connection signal="responded" from="StreamRequest" to="." method="_on_stream_chunk"]
+[connection signal="responded_error" from="StreamRequest" to="." method="_on_error"]
 [connection signal="timeout" from="Control/MarginContainer/MarginContainer/VBoxContainer/RunningLabel/RunningTextTimer" to="." method="_on_running_text_timer_timeout"]
 [connection signal="pressed" from="Control/MarginContainer/MarginContainer/VBoxContainer/StopButton" to="." method="stop"]

@@ -1,0 +1,99 @@
+[gd_scene format=3 uid="uid://brmmpf4g2jhh5"]
+
+[ext_resource type="Script" uid="uid://lw6xpdbgojt" path="res://tools/super_iterative_analyzer/session_item_container.gd" id="1_brt4u"]
+[ext_resource type="Script" uid="uid://co4nsocgm00gg" path="res://src/main/conversation.gd" id="2_os41i"]
+
+[node name="SessionItemContainer" type="ScrollContainer" unique_id=1116906664]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+focus_mode = 1
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 0
+script = ExtResource("1_brt4u")
+metadata/_edit_group_ = true
+
+[node name="Conversation" type="Node" parent="." unique_id=1125215585]
+unique_name_in_owner = true
+script = ExtResource("2_os41i")
+base_url = "https://api.moonshot.cn/v1/chat/completions"
+model = "kimi-k2.5"
+stream = true
+metadata/_custom_type_script = "uid://co4nsocgm00gg"
+
+[node name="AutoScrollTimer" type="Timer" parent="." unique_id=1002967864]
+unique_name_in_owner = true
+wait_time = 0.2
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1984026741]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 64
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1154739290]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer" unique_id=2098435087]
+layout_mode = 2
+theme_override_constants/margin_left = 64
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MarginContainer" unique_id=1439728074]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/MarginContainer/VBoxContainer" unique_id=726296]
+layout_mode = 2
+text = "User"
+horizontal_alignment = 2
+
+[node name="UserMessageBox" type="TextEdit" parent="MarginContainer/VBoxContainer/MarginContainer/VBoxContainer" unique_id=963384898]
+unique_name_in_owner = true
+layout_mode = 2
+editable = false
+wrap_mode = 1
+scroll_fit_content_height = true
+
+[node name="MarginContainer2" type="MarginContainer" parent="MarginContainer/VBoxContainer" unique_id=603848320]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MarginContainer2" unique_id=1340797869]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="MarginContainer/VBoxContainer/MarginContainer2/VBoxContainer" unique_id=1225126063]
+layout_mode = 2
+text = "Assistant"
+
+[node name="MessageHeadBox" type="TextEdit" parent="MarginContainer/VBoxContainer/MarginContainer2/VBoxContainer" unique_id=1158269436]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_vertical = 0
+editable = false
+wrap_mode = 1
+scroll_fit_content_height = true
+
+[node name="用户问题分析" type="Label" parent="MarginContainer/VBoxContainer/MarginContainer2/VBoxContainer" unique_id=802024463]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MarginContainer2/VBoxContainer" unique_id=1515964662]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 0
+
+[node name="ItemGroup" type="HSplitContainer" parent="MarginContainer/VBoxContainer/MarginContainer2/VBoxContainer/ScrollContainer" unique_id=441066131]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[connection signal="responded_stream_data" from="Conversation" to="." method="_on_conversation_responded_stream_data"]
+[connection signal="responded_stream_end" from="Conversation" to="." method="_on_conversation_responded_stream_end"]

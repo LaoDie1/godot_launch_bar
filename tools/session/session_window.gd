@@ -9,7 +9,8 @@ class_name SessionWindow
 extends Window
 
 const SESSION_ITEM = preload("uid://d4ft7r0p0pskd")
-const SESSION_DB_PATH = "user://session/session.db"
+const SessionItem = preload("uid://d0216ovvv0ov")
+const SessionItemContainer = preload("uid://lw6xpdbgojt")
 
 @onready var send_text_box: TextEdit = %SendTextBox
 @onready var model_button : OptionButton = %ModelsButton
@@ -27,6 +28,7 @@ var current_session_item_container: SessionItemContainer
 
 func _init() -> void:
 	# 自动创建表
+	const SESSION_DB_PATH = "user://session/session.db"
 	FileUtil.make_dir_if_not_exists(SESSION_DB_PATH.get_base_dir())
 	if session_db == null:
 		session_db = SQLite.new()

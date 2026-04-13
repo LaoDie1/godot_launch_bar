@@ -6,10 +6,10 @@
 # - version: 4.6.2.stable
 #============================================================
 ## 这个对话场景容器
-class_name SessionItemContainer
 extends ScrollContainer
 
 const SESSION_ITEM = preload("uid://d4ft7r0p0pskd")
+const SessionItem = preload("uid://dm36yxyxatrrs")
 
 @onready var session_item_list: VBoxContainer = %SessionItemList
 @onready var conversation: Conversation = %Conversation
