@@ -58,10 +58,19 @@ func _notification(what):
 		uncontrol_state = states.add_state(PlatformObject.States.UNCONTROL)
 		dead_state = states.add_state(PlatformObject.States.DEAD)
 
+## 获取这个节点所属的 [PlatformObject] 对象
+static func find_object(node: Node) -> PlatformObject:
+	if node:
+		if node.owner is PlatformObject:
+			return node.owner as PlatformObject
+		elif node is PlatformObject:
+			return node
+		node = node.get_parent()
+		while node and node.owner:
+			node = node.get_parent()
+		return node as PlatformObject
+	return null
 
-#============================================================
-#  自定义方法
-#============================================================
 ## 获取面向的方向
 ##[br]
 ##[br]- [param offset_distance]  以这个方向进行偏移的值
@@ -90,16 +99,3 @@ func update_direction(direction: Vector2) -> void:
 
 func direction_to(target: PlatformObject) -> Vector2:
 	return self.get_body_position().direction_to(target.get_body_position())
-
-## 获取这个节点所属的 [PlatformObject] 对象
-static func find_object(node: Node) -> PlatformObject:
-	if node:
-		if node.owner is PlatformObject:
-			return node.owner as PlatformObject
-		elif node is PlatformObject:
-			return node
-		node = node.get_parent()
-		while node and node.owner:
-			node = node.get_parent()
-		return node as PlatformObject
-	return null

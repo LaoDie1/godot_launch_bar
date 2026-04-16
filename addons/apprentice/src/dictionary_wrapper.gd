@@ -5,7 +5,7 @@
 # - datetime: 2025-12-31 19:17:49
 # - version: 4.5.1.stable
 #============================================================
-class_name DictWrapper
+class_name DictionaryWrapper
 
 var data : Dictionary
 

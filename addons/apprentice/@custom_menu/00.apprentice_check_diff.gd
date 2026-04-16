@@ -13,3 +13,6 @@ func _get_menu_name():
 
 func _execute():
 	ApprenticePlugin.instance.SyncFile.check_diff()
+
+func _enter():
+	_execute.call()

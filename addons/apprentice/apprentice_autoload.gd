@@ -21,9 +21,10 @@ func _init():
 		if script:
 			var object := script.new() as Autoload
 			object._instance = object
-	
+	_project_setting.call_deferred()
+
+func _project_setting():
 	# 日志等级
-	Log
 	var log_display_value = ProjectSettings.get_setting(Log.LOG_DISPLAY_PATH)
 	if log_display_value:
 		Log.display = log_display_value

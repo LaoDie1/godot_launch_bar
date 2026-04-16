@@ -10,12 +10,7 @@ class_name AnimationCanvas
 extends Node2D
 
 
-signal played(animation: StringName)
-
-
-#============================================================
-#  代理节点
-#============================================================
+@abstract
 class AbstractAgent:
 	
 	var host
@@ -23,17 +18,17 @@ class AbstractAgent:
 	func _init(host) -> void:
 		self.host = host
 	
-	func get_host():
+	func get_host() -> Node:
 		return host
 	
 	func has_animation(animation: StringName) -> bool:
 		return false
 	
-	func play(animation: StringName):
-		pass
+	@abstract
+	func play(animation: StringName)
 	
-	func stop():
-		pass
+	@abstract
+	func stop()
 	
 	func get_animation_time(animation: StringName) -> float:
 		return 0.0
@@ -46,7 +41,6 @@ class AbstractAgent:
 	
 	func get_size() -> Vector2:
 		return Vector2(0, 0)
-	
 
 
 class AgentAnimatedSprite2D extends AbstractAgent:
@@ -86,7 +80,6 @@ class AgentAnimatedSprite2D extends AbstractAgent:
 		if texture:
 			return texture.get_size()
 		return Vector2(0, 0)
-	
 
 
 class AgentAnimationPlayer extends AbstractAgent:
@@ -108,16 +101,16 @@ class AgentAnimationPlayer extends AbstractAgent:
 	func get_animation_time(animation: StringName) -> float:
 		var anim := get_host().get_animation(animation) as Animation
 		return anim.length / get_host().playback_speed
-	
 
 
-class AgentSprite2D extends AbstractAgent:
+@abstract
+class AbstractAgentSprite extends AbstractAgent:
 	
 	func _get_animated_texture() -> Texture2D:
 		return get_host().texture
 	
-	func get_host() -> Sprite2D:
-		return super.get_host() as Sprite2D
+	func get_offset() -> Vector2:
+		return get_host().offset
 	
 	func has_animation(animation: StringName) -> bool:
 		return animation == &""
@@ -134,21 +127,30 @@ class AgentSprite2D extends AbstractAgent:
 	func get_texture():
 		return get_host().texture
 	
-	func get_offset() -> Vector2:
-		return get_host().offset
-	
 	func get_size():
 		var texture = get_texture()
 		if texture:
 			return texture.get_size()
 		return Vector2()
-	
 
 
-## 自动搜索子节点是否有动画节点，如果指定了 [member target] 属性，则不会自动搜索
-@export var auto_search : bool = true
+class AgentSprite2D extends AbstractAgentSprite:
+	func get_host() -> Sprite2D:
+		return super.get_host() as Sprite2D
+
+
+class AgentSprite3D extends AbstractAgentSprite:
+	func get_host() -> Sprite3D:
+		return super.get_host() as Sprite3D
+
+
+#============================================================
+#  实现功能
+#============================================================
+signal played(animation: StringName)
+
 ## 播放动画的目标节点
-@export_node_path("AnimatedSprite2D", "AnimatedSprite3D", "AnimationPlayer", "Sprite2D")
+@export_node_path("AnimatedSprite2D", "AnimatedSprite3D", "AnimationPlayer", "Sprite2D", "Sprite3D")
 var target : NodePath :
 	set(v):
 		target = v
@@ -165,10 +167,6 @@ var target : NodePath :
 
 var _agent : AbstractAgent
 
-
-#============================================================
-#  SetGet
-#============================================================
 func set_target(node: Node):
 	if node is AnimatedSprite2D:
 		_agent = AgentAnimatedSprite2D.new(node)
@@ -176,6 +174,8 @@ func set_target(node: Node):
 		_agent = AgentAnimationPlayer.new(node)
 	elif node is Sprite2D:
 		_agent = AgentSprite2D.new(node)
+	elif node is Sprite3D:
+		_agent = AgentSprite3D.new(node)
 
 ## 获取目标节点
 func get_target() -> Node:
@@ -216,25 +216,10 @@ func get_offset() -> Vector2:
 func get_size() -> Vector2:
 	return _agent.get_size()
 
-
-#============================================================
-#  内置
-#============================================================
 func _enter_tree() -> void:
 	var node : Node
 	if not target.is_empty():
 		node = get_node(target)
-	else:
-		if auto_search:
-			for child in get_children():
-				if (child is AnimatedSprite2D
-					or child is AnimatedSprite3D
-					or child is AnimationPlayer
-					or child is Sprite2D
-				):
-					node = child
-					break
-	
 	if node:
 		set_target(node)
 
@@ -246,9 +231,6 @@ func _ready() -> void:
 #		print(owner, "没有选中可播放动画的节点")
 
 
-#============================================================
-#  自定义
-#============================================================
 func play(animation: StringName):
 	if _agent and has_animation(animation):
 		_agent.play(animation)

@@ -9,7 +9,7 @@
 ##
 ##地图的大小都是相同的，而且要设置房间的上下左右通道，否则有可能连接起来墙堵住了。
 class_name IdenticalRoomMapGenerator
-extends Node
+extends MyNode
 
 enum Type {
 	LEFT_RIGHT, # 左右有通路的房间

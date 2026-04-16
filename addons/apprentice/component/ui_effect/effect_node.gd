@@ -6,4 +6,4 @@
 # - version: 4.4.1.stable
 #============================================================
 class_name EffectNode 
-extends Node
+extends MyNode

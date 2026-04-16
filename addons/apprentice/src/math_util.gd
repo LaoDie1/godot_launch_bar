@@ -85,7 +85,6 @@ static func get_eight_directions() -> Array[Vector2]:
 		Vector2.RIGHT, # 右
 		Vector2(1, 1), Vector2.DOWN, Vector2(-1, 1), #底部从右到左
 		Vector2.LEFT, # 左
-		
 	]
 
 static func get_nine_grid_coords() -> Array[PackedVector2Array]:
@@ -203,6 +202,11 @@ static func get_closest_points(from: Vector2, points: Array) -> Vector2:
 			p = point
 	return p
 
+static func sum(list: Array) -> float:
+	var i : float = 0
+	for num in list:
+		i += num
+	return i
 
 ## 在距离之内
 static func is_in_distance(from: Vector2, to: Vector2, max_distance: float) -> bool:

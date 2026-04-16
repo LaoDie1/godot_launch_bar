@@ -11,7 +11,7 @@
 ##在调用 [method execute] 方法执行的时候，会根据 [member stages] 顺序执行给予数据的
 ##消耗的时间，并发出 [signal executed_stage] 信号来响应执行的每个阶段。
 class_name TimeLine
-extends Node
+extends MyNode
 
 
 ## 准备执行。注意，这个时候还未进入到执行发出 [signal executed_stage] 信号的阶段

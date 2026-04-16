@@ -485,3 +485,10 @@ static func simplify_collinear_points(points: PackedVector2Array, epsilon: float
 		if abs(cross) <= epsilon:
 			simplified.remove_at(simplified.size() - 2)
 	return simplified
+
+
+static func get_fill_array(size: int = 0, default_value = null) -> Array:
+	var array = [] 
+	array.resize(size)
+	array.fill(default_value)
+	return array

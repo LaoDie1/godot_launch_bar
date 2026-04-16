@@ -7,7 +7,7 @@
 #============================================================
 ## 伤害组件。一个场景只存放一个即可
 class_name DamageComponent
-extends Node
+extends MyNode
 
 
 signal ready_damage(data: Dictionary)  ##准备对目标造成伤害

@@ -583,6 +583,13 @@ static func for_rect(rect: Rect2, callback: Callable) -> void:
 		for x in range(rect.position.x, rect.end.x + 1):
 			callback.call(Vector2(x, y))
 
+static func get_rect_points(rect: Rect2) -> Array:
+	var points = []
+	for y in range(rect.position.y, rect.end.y + 1):
+		for x in range(rect.position.x, rect.end.x + 1):
+			points.append(Vector2(x, y))
+	return points
+
 ## 回调方法中要有一个参数接收一个 [float] 类型的 x 值
 static func for_rect_x(rect: Rect2, callback: Callable) -> void:
 	for x in range(rect.position.x, rect.end.x + 1):
@@ -642,16 +649,67 @@ static func for_circle(radius: float, callback: Callable, include_radius: bool =
 				callback.call(v)
 		)
 
-static func for_circle_around(radius: float, callback: Callable, include_radius: bool = true):
-	var visited : Dictionary = {}
-	for_rect_around(
-		Rect2().grow(radius), 
-		func(v: Vector2):
-			v = (v.normalized() * radius).round()
-			if not visited.has(v):
-				visited[v] = null
-				callback.call(v)
-	)
+## 迭代轮廓边缘
+static func for_circle_around(radius: float, callback: Callable):
+	var points = get_circle_outline_tiles(radius)
+	for p in points:
+		callback.call(p)
+
+
+## 圆形轮廓（边缘一圈）
+func get_circle_outline(radius:int) -> Array[Vector2]:
+	var points = []
+	var r = radius
+	for x in range(-r, r+1):
+		for y in range(-r, r+1):
+			var d = sqrt(x*x + y*y)
+			if d >= r - 0.5 and d < r + 0.5:
+				points.append(Vector2(x, y))
+	return points
+
+## 实心圆
+func get_circle_solid(radius:int) -> Array[Vector2]:
+	var points = []
+	var r = radius
+	for x in range(-r, r+1):
+		for y in range(-r, r+1):
+			var d = sqrt(x*x + y*y)
+			if d < r + 0.5:
+				points.append(Vector2(x, y))
+	return points
+
+## 圆环（轮廓宽度 = outer - inner）
+func get_circle_ring(outer_radius:int, inner_radius:int) -> Array[Vector2]:
+	var points = []
+	var r1 = inner_radius
+	var r2 = outer_radius
+	for x in range(-r2, r2+1):
+		for y in range(-r2, r2+1):
+			var d = sqrt(x*x + y*y)
+			if d >= r1 + 0.5 and d < r2 + 0.5:
+				points.append(Vector2(x, y))
+	return points
+
+# 生成圆形边缘一圈的1x1网格点 (Vector2(1,1)网格)
+# radius: 圆形半径
+# callback: 遍历到每个边缘点时调用的回调函数
+# include_radius: 是否包含半径边界点（默认开启）
+# 生成完美圆形轮廓瓦片点（保证上下左右四个端点必存在）
+# radius: 整数半径（推荐 5/10/15 这种整数）
+static func get_circle_outline_tiles(radius: int) -> Array[Vector2]:
+	var points : Array[Vector2] = []
+	var r = radius
+
+	# 8向对称法生成圆形轮廓，绝对不会丢失上下左右顶点
+	for x in range(-r, r + 1):
+		for y in range(-r, r + 1):
+			# 计算到圆心距离
+			var dist = sqrt(x*x + y*y)
+			
+			# 严格匹配轮廓：距离 ≈ 半径（允许微小误差）
+			if dist >= r - 0.5 && dist < r + 0.5:
+				points.append(Vector2(x, y))
+	return points
 
 
 # FIXME 这个方法名待修改
@@ -867,7 +925,7 @@ static func execute_curve_tween(
 ##[br]- [param next_condition]  是否可移动到下一个位置的条件。这个方法需要有一个 [Vector2]
 ##类型的参数接收判断是否可以移动到这个位置，并返回一个 [bool] 值，如果返回 [code]true[/code] 则下一层时会移动到这个位置
 ##[br]- [param ready_next_callback]  开始下一层遍历前会调用这个方法，需要一个 [Vector2] 类型的 [Array] 参数接收开始下一层的坐标列表。
-##[br]- [param end_condition]  停止结束的条件
+##[br]- [param end_condition]  停止结束的条件。这个方法接受本轮循环结束时的点列表
 ##[br]- [code]return[/code]  返回已经过的点的列表
 ##[br]
 ##[br]示例。查找 [TileMapLayer] 中没有瓦片的所有坐标：
@@ -887,7 +945,7 @@ static func execute_curve_tween(
 ##print(coords_list)
 ##[/codeblock]
 static func path_move(
-	start: Vector2, 
+	start, 
 	directions: Array, 
 	next_condition: Callable,
 	ready_next_callback: Callable = Callable(),
@@ -900,7 +958,7 @@ static func path_move(
 		start: null,
 	}
 	var visited : Dictionary = {}
-	var next_pos : Vector2
+	var next_pos
 	var condition_result: bool
 	var idx : int = 0
 	while true:
@@ -909,7 +967,7 @@ static func path_move(
 		for coord in last:
 			visited[coord] = null
 			for direction in directions:
-				next_pos = coord + Vector2(direction)
+				next_pos = coord + direction
 				condition_result = next_condition.call(next_pos)
 				if (not visited.has(next_pos) 
 					and condition_result
@@ -917,7 +975,7 @@ static func path_move(
 					next_points[next_pos] = null
 					pass_points[next_pos] = null
 		
-		if end_condition.is_valid() and end_condition.call():
+		if end_condition.is_valid() and end_condition.call(last):
 			break
 		
 		last = next_points.keys()

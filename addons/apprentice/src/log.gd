@@ -31,6 +31,8 @@ static var display: int = DefaultValue.DISPLAY
 static var print_path: int = DefaultValue.PRINT_PATH
 ## 格式化输出方法。可以修改这个值，以改变输出结果，这个方法需要有一个 params: Array 参数接收数据参数列表
 static var format_method : Callable = func(head, params: Array):
+	if head is Object:
+		head = ScriptUtil.get_info(head)
 	head = str(head)
 	if params:
 		var format_str : String = "%s ".repeat(params.size())

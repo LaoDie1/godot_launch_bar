@@ -408,31 +408,79 @@ static func has_cell_data(tilemap: TileMapLayer, coord) -> bool:
 
 
 ## 获取两点之间的连接线
-static func get_connect_line_points(from_coords: Vector2i, to_coords: Vector2i) -> Array[Vector2i]:
-	var min_coords := Vector2i(MathUtil.get_min_xy([from_coords, to_coords]))
-	var max_coords := Vector2i(MathUtil.get_max_xy([from_coords, to_coords]))
-	var rect := Rect2i(min_coords, (max_coords - min_coords).abs())
-	if rect.size.x == 0:
-		rect.size.x = 1
-	if rect.size.y == 0: 
-		rect.size.y = 1
+static func get_connect_line_points(start: Vector2i, end: Vector2i) -> Array[Vector2i]:
+	var tiles : Array[Vector2i] = []
 	
-	var direction := Vector2(to_coords - from_coords).normalized()
-	var tmp_coord := Vector2(from_coords)
-	var tmp_coord_i := Vector2i(from_coords)
-	var list : Array[Vector2i]
+	var x0 = start.x
+	var y0 = start.y
+	var x1 = end.x
+	var y1 = end.y
+
+	var dx = abs(x1 - x0)
+	var dy = abs(y1 - y0)
+	var sx = 1 if x0 < x1 else -1
+	var sy = 1 if y0 < y1 else -1
+	var err = dx - dy
+
 	while true:
-		tmp_coord += direction
-		tmp_coord_i = Vector2i(tmp_coord)
-		if rect.has_point(tmp_coord_i):
-			list.append(tmp_coord_i)
-		else:
-			if list.is_empty():
-				printt(rect, tmp_coord_i, direction)
-			if not list.is_empty() and list.back() != to_coords:
-				list.append(to_coords)
+		# 添加当前瓦片坐标
+		tiles.append(Vector2i(x0, y0))
+		
+		# 到达终点就退出
+		if x0 == x1 && y0 == y1:
 			break
-	return list
+			
+		var e2 = 2 * err
+		if e2 > -dy:
+			err -= dy
+			x0 += sx
+		if e2 < dx:
+			err += dx
+			y0 += sy
+
+	return tiles
+
+# 预简化：剔除同一直线上的连续冗余瓦片
+static func pre_simplify_tile_path(tiles: Array) -> Array[Vector2i]:
+	if tiles.size() <= 2:
+		return tiles.duplicate()
+	var simplified : Array[Vector2i] = [tiles[0]]
+	for i in range(1, tiles.size()-1):
+		var dir_prev = tiles[i] - tiles[i-1]
+		var dir_next = tiles[i+1] - tiles[i]
+		if dir_prev != dir_next:  # 方向变了，保留拐点
+			simplified.append(tiles[i])
+	simplified.append(tiles[-1])
+	return simplified
+
+
+## 路径平滑。- [param tolerance] 平滑度，值越大平滑度越高
+static func simplify_path(path: PackedVector2Array, tolerance: float) -> PackedVector2Array:
+	if path.size() <= 2: return path
+	var max_dist = 0.0
+	var max_idx = 0
+	var start = path[0]
+	var end = path[path.size()-1]
+	for i in range(1, path.size()-1):
+		var dist = _point_to_line_distance(path[i], start, end)
+		if dist > max_dist:
+			max_dist = dist
+			max_idx = i
+	if max_dist > tolerance:
+		var left = simplify_path(path.slice(0, max_idx+1), tolerance)
+		var right = simplify_path(path.slice(max_idx, path.size()), tolerance)
+		return left.slice(0, left.size()-1) + right
+	else:
+		return PackedVector2Array([start, end])
+
+static func _point_to_line_distance(point: Vector2, line_start: Vector2, line_end: Vector2) -> float:
+	var line_vec = line_end - line_start
+	var point_vec = point - line_start
+	if line_vec.length_squared() == 0:
+		return point.distance_to(line_start)
+	var t = clamp(point_vec.dot(line_vec) / line_vec.length_squared(), 0.0, 1.0)
+	var proj = line_start + line_vec * t
+	return point.distance_to(proj)
 
 
 ## 检测是否有单元格
@@ -588,23 +636,29 @@ static func get_border_coords_list(
 	directions: Array = MathUtil.get_eight_directions_i(),
 ) -> Array:
 	# 不存在的点的位置
-	var dict = {}
-	for p in points:
-		dict[p] = null
+	var p_set : HashSet = HashSet.new(points)
+	var start_p = p_set.pick_random()
+	if start_p is Vector2:
+		if not directions[0] is Vector2:
+			directions = directions.map(func(v): return Vector2(v))
+	else:
+		if not directions[0] is Vector2i:
+			directions = directions.map(func(v): return Vector2i(v))
+	while true:
+		start_p += directions[0]
+		if not p_set.has(start_p):
+			start_p -= directions[0]
+			break
 	
-	var list = []
-	var tmp : Vector2
-	var border: bool
-	for point in points:
-		border = false
-		for dir in directions:
-			tmp = point + dir
-			if not dict.has(tmp):
-				border = true
-				break
-		if border:
-			list.append(point)
-	return list
+	return FuncUtil.path_move(
+		start_p, directions,
+		func(point) -> bool:
+			if p_set.has(point):
+				for dir in directions:
+					if not p_set.has(point + dir):
+						return true
+			return false
+	)
 
 
 ## 获取内部的坐标列表
@@ -751,37 +805,334 @@ static func get_all_empty_cells(
 	return dict.keys()
 
 
-## 边缘点排序。这些点需要是边缘的左右相连的距离为 Vector2.ONE 的点，否则排序会失效
-static func sort_border_points(border_points: Array, edge_dir: Array = []) -> Array:
+## 点排序
+static func sort_border_points(border_points: Array, dirs: Array = []) -> Array:
 	if border_points.is_empty():
 		return []
-	if edge_dir.is_empty():
-		edge_dir = MathUtil.get_eight_directions()
-	var current = border_points[0]
+	if dirs.is_empty():
+		dirs = [
+			Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, 
+			Vector2i(-1, -1), Vector2i(1, -1), Vector2i(1, 1), Vector2i(-1, 1),  
+		]
 	if border_points[0] is Vector2:
-		edge_dir = edge_dir.map(func(v): return Vector2(v))
+		dirs = dirs.map(func(v): return Vector2(v))
 	else:
-		edge_dir = edge_dir.map(func(v): return Vector2i(v))
+		dirs = dirs.map(func(v): return Vector2i(v))
 	
-	var sort_list : Array = []
-	sort_list.append(current)
-	
-	var visited : Dictionary = {}
-	visited[current] = null
-	var next_state : bool
+	var last_points : Array = []
+	var point_set := HashSet.new(border_points)
+	var start_point = border_points[0]
+	var current_point = start_point
+	var visited := HashSet.new()
+	var points : Array = [current_point]
+	var tmp_point
 	while true:
-		next_state = false
-		for dir in edge_dir:
-			if border_points.has(current + dir) and not visited.has(current + dir):
-				sort_list.append(current + dir)
-				if dir in edge_dir:  # INFO 角落的点也添加到已经过的点，防止点往回走
-					for d in edge_dir:
-						visited[current + d] = null
-				visited[current + dir] = null
-				current += dir
-				next_state = true
+		for dir in dirs:
+			tmp_point = current_point + dir
+			if not visited.has(tmp_point):
+				visited.append(tmp_point)
+				if point_set.has(tmp_point):
+					current_point = tmp_point
+					points.append(current_point)
+					if last_points.size() < points.size():
+						last_points = points.duplicate()
+					break
+			else:
+				# 当到达了刚开始的点的时候
+				if tmp_point == start_point:
+					if last_points.size() < points.size():
+						points.append(tmp_point)
+						return points
+					else:
+						last_points.append(tmp_point)
+						return last_points
+		if current_point != tmp_point:
+			if points.size() > 1:
+				current_point = points.pop_back()
+			else:
 				break
-		if not next_state:
-			break
+	return points
+
+
+## 选取位置中间的瓦片（最快，99% 概率不会选到区域外的点）
+static func get_median_center(tile_coords: Array) -> Vector2i:
+	if tile_coords.is_empty(): return Vector2i.ZERO
 	
-	return sort_list
+	# 提取所有X和Y并排序
+	var x_coords := tile_coords.map(func(c): return c.x)
+	x_coords.sort()
+	var y_coords := tile_coords.map(func(c): return c.y)
+	y_coords.sort()
+	
+	# 取中位数
+	var mid := tile_coords.size() / 2
+	return Vector2i(x_coords[mid], y_coords[mid])
+
+
+## 选取离中间位置最近的瓦片（最稳）
+static func get_most_popular_point(tile_coords: Array) -> Vector2i:
+	if tile_coords.is_empty(): return Vector2i.ZERO
+	
+	var best_coord = tile_coords[0]
+	var min_total_dist := INF
+	
+	for coord in tile_coords:
+		var total_dist := 0.0
+		# 用平方距离（避免开根号，更快）
+		for other in tile_coords: total_dist += coord.distance_squared_to(other)
+		
+		if total_dist < min_total_dist:
+			min_total_dist = total_dist
+			best_coord = coord
+	
+	return best_coord
+
+
+## 膨胀/收缩轮廓点
+##[br]
+##[br]- [param input_points]: 单个颜色区域的所有通行瓦片坐标
+##[br]- [param operation_level]: 收缩膨胀级别。超过 0 则为膨胀，小于 0 则为收缩
+##[br]- [param connect_type]: 连通类型 4=4方向 8=8方向（默认8）
+##[br]返回值：[code]Array[Array][/code]，每个元素是一个独立巡逻块的闭合路线
+static func offset_contour(
+	input_points: Array,
+	operation_level: int = 1, 
+	connect_type: int = 8
+) -> Array[Array]:
+	if input_points.is_empty():
+		return []
+	
+	if operation_level == 0:
+		return input_points
+	
+	# -------------------------- 步骤1：对整个区域统一收缩（核心！） --------------------------
+	# 先把整个大区域收缩，狭窄通道会被直接缩没，原本连通的区域会分裂成多个独立块
+	var point_set : Dictionary = {}
+	for p:Vector2i in input_points:
+		point_set[p] = true
+	
+	var result : Dictionary = point_set.duplicate()
+	if operation_level < 0:
+		for i in range(-operation_level):
+			result = _shrink_contour(result)
+			if result.is_empty():
+				break
+	elif operation_level > 0:
+		var exclude_point_set = point_set.duplicate()
+		for i in range(operation_level):
+			result = _expand_contour(result, exclude_point_set)
+			for point in result:
+				exclude_point_set[point] = null
+			if result.is_empty():
+				break
+	
+	if result.is_empty():
+		return []
+	
+	# 把收缩后的字典转成坐标数组
+	var points = result.keys()
+
+	# -------------------------- 步骤2：分割收缩后的多个独立连通块 --------------------------
+	# 收缩后分裂的多个块，在这里被拆分出来，每个块都是一个独立的巡逻区
+	var patrol_blocks = split_connected_blocks(points, connect_type)
+	if operation_level < 0:
+		var all_routes : Array[Array] = []
+
+		# -------------------------- 步骤3：每个独立块单独生成闭合巡逻路线 --------------------------
+		for block in patrol_blocks:
+			# 过滤掉太小的块（小于4个点无法生成有效闭合路线，避免无效绘制）
+			if block.size() < 4:
+				continue
+			# 给当前块生成边缘闭合路线（不再重复收缩）
+			var route = get_edge_loop_route_for_single_block(block)
+			if route.size() >= 3: # 只有路线长度足够，才加入结果
+				all_routes.append(route)
+		
+		return all_routes
+	
+	return patrol_blocks
+
+
+# 收缩轮廓函数，对这些点向内收缩
+static func _shrink_contour(point_set: Dictionary) -> Dictionary:
+	var new_set = {}
+	var dirs = [
+		Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN,
+		Vector2i.LEFT + Vector2i.UP, Vector2i.RIGHT + Vector2i.UP,
+		Vector2i.LEFT + Vector2i.DOWN, Vector2i.RIGHT + Vector2i.DOWN
+	]
+	
+	for p in point_set:
+		var is_inner = true
+		for dir in dirs:
+			if not point_set.has(p + dir):
+				is_inner = false
+				break
+		if is_inner:
+			new_set[p] = true
+			
+	return new_set
+
+# 膨胀轮廓函数，对点集向外膨胀一圈
+static func _expand_contour(point_set: Dictionary, exclude_point_set: Dictionary) -> Dictionary:
+	var new_set = {}
+	# 8个方向（和收缩函数完全一致，保证膨胀/收缩对称）
+	var dirs = [
+		Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN,
+		Vector2i.LEFT + Vector2i.UP, Vector2i.RIGHT + Vector2i.UP,
+		Vector2i.LEFT + Vector2i.DOWN, Vector2i.RIGHT + Vector2i.DOWN
+	]
+	
+	# 遍历原始点集中的每一个点
+	for p in point_set:
+		# 遍历8个方向，把所有邻点都加入新集合
+		for dir in dirs:
+			var expanded_point = p + dir
+			if not exclude_point_set.has(expanded_point):
+				new_set[expanded_point] = true  # 字典自动去重，重复添加不影响
+			
+	return new_set
+
+## 对一组不连续的点进行切分，将连续的点分组，点之间相连的分为一个组。[param connect_type] 为对一个点周围判定的方向数量
+static func split_connected_blocks(input_points: Array, connect_type: int = 8) -> Array[Array]:
+	var point_set := {}
+	for p:Vector2i in input_points:
+		point_set[p] = true
+	
+	var visited := {}
+	var blocks : Array[Array] = []
+	var dirs := _get_dirs(connect_type)
+
+	# BFS遍历所有点，分割连通块
+	for p:Vector2i in input_points:
+		if visited.has(p):
+			continue
+		
+		var current_block := []
+		var queue := [p]
+		visited[p] = true
+
+		while not queue.is_empty():
+			var current:Vector2i = queue.pop_front()
+			current_block.append(current)
+
+			for dir:Vector2i in dirs:
+				var next_p:Vector2i = current + dir
+				if point_set.has(next_p) and not visited.has(next_p):
+					visited[next_p] = true
+					queue.append(next_p)
+		
+		blocks.append(current_block)
+	
+	return blocks
+
+
+# ==============================================
+# 获取方向数组
+# ==============================================
+static func _get_dirs(connect_type: int) -> Array:
+	var dirs_4 = [
+		Vector2i.LEFT, Vector2i.RIGHT,
+		Vector2i.UP, Vector2i.DOWN
+	]
+	var dirs_8 = dirs_4 + [
+		Vector2i.LEFT + Vector2i.UP,
+		Vector2i.RIGHT + Vector2i.UP,
+		Vector2i.LEFT + Vector2i.DOWN,
+		Vector2i.RIGHT + Vector2i.DOWN
+	]
+	return dirs_8 if connect_type == 8 else dirs_4
+
+
+# ==============================================
+# 单块路线生成：仅给单个独立的、已收缩的块生成闭合边缘路线
+# 移除了内部收缩逻辑，避免重复收缩；优化了寻路逻辑，确保闭合
+# ==============================================
+## 对点进行闭合路线
+static func get_edge_loop_route_for_single_block(block_points: Array) -> Array:
+	if block_points.size() < 3:
+		return Array()
+
+	# 构建当前块的点集
+	var block_set = {}
+	for p:Vector2i in block_points:
+		block_set[p] = true
+
+	# 提取当前块的所有边缘点
+	var edge_points = {}
+	for p:Vector2i in block_set:
+		if _is_edge_point(p, block_set):
+			edge_points[p] = true
+	
+	if edge_points.is_empty():
+		return Array()
+
+	# 找到起点（最左上的边缘点）
+	var start_pos:Vector2i = _find_top_left_edge(edge_points)
+	if start_pos == Vector2i(-1, -1):
+		return Array()
+
+	# 优化寻路：用BFS替代DFS，避免路线断裂，确保完整遍历边缘
+	var route = Array()
+	var visited = {}
+	var queue = [start_pos]
+	
+	# 8方向遍历，优先相邻方向，保证路线连续
+	var dirs = [
+		Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP,
+		Vector2i.RIGHT + Vector2i.DOWN, Vector2i.LEFT + Vector2i.DOWN,
+		Vector2i.LEFT + Vector2i.UP, Vector2i.RIGHT + Vector2i.UP
+	]
+
+	while not queue.is_empty():
+		var current:Vector2i = queue.pop_front()
+		
+		if visited.has(current):
+			continue
+		if not edge_points.has(current):
+			continue
+			
+		visited[current] = true
+		route.append(current)
+
+		# 逆序遍历，保证路线顺时针连续
+		for i in range(dirs.size() - 1, -1, -1):
+			var dir:Vector2i = dirs[i]
+			var next_p:Vector2i = current + dir
+			if edge_points.has(next_p) and not visited.has(next_p):
+				queue.append(next_p)
+
+	# 强制闭合路线：如果终点和起点不重合，把起点加到末尾
+	if route.size() > 0 and route[0] != route[route.size()-1]:
+		route.append(route[0])
+
+	return route
+
+# ==============================================
+# 边缘点判断函数
+# ==============================================
+static func _is_edge_point(p: Vector2i, point_set: Dictionary) -> bool:
+	var dirs = [
+		Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN,
+		Vector2i.LEFT + Vector2i.UP, Vector2i.RIGHT + Vector2i.UP,
+		Vector2i.LEFT + Vector2i.DOWN, Vector2i.RIGHT + Vector2i.DOWN
+	]
+	for dir in dirs:
+		if not point_set.has(p + dir):
+			return true
+	return false
+
+
+# ==============================================
+# 找最左上起点函数
+# ==============================================
+static func _find_top_left_edge(edge_points: Dictionary) -> Vector2i:
+	var min_x = INF
+	var min_y = INF
+	var start = Vector2i(-1, -1)
+	for p:Vector2i in edge_points:
+		if p.y < min_y or (p.y == min_y and p.x < min_x):
+			min_y = p.y
+			min_x = p.x
+			start = p
+	return start

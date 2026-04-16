@@ -3,7 +3,7 @@
 # Note: The code might not be as pretty it could be, since it's written
 # in a way that maximizes performance. Methods are inlined and loops are avoided.
 class_name UUID
-extends Node
+extends MyNode
 
 const BYTE_MASK: int = 0b11111111
 

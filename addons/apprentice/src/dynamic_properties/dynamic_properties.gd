@@ -9,7 +9,7 @@
 ##
 ##通过向这个节点添加属性
 class_name DynamicProperties
-extends Node
+extends MyNode
 
 ## 新添加属性
 signal newly_added_property(item: PropertyItem)

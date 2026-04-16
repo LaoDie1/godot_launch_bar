@@ -6,7 +6,7 @@
 # - version: 4.0
 #============================================================
 class_name ConditionManagement
-extends Node
+extends MyNode
 
 
 var _data : Dictionary = {}

@@ -63,6 +63,9 @@ var data : Dictionary
 ## 保存的文件的数据格式
 var data_format : int = BYTES
 
+# 绑定的 key 计数
+var _binded_key_count: Dictionary[Variant, int] = {}
+
 
 ## 实例化数据对象，如果不传入文件路径，则
 ##[br]
@@ -187,6 +190,8 @@ func bind_object(
 	set_value_handle : Callable = Callable(),
 	condition: Callable = Callable()
 ) -> void:
+	_binded_key_count[key] = _binded_key_count.get_or_add(key, 0) + 1
+	
 	if not object is Node and property.is_empty():
 		const MESSAGE = "如果绑定的对象不是 Node 类型，则需要传入要同步绑定修改的 property 参数"
 		push_error(MESSAGE)
@@ -255,12 +260,22 @@ var _binded_method_dict: Dictionary = {}
 ##[br] - [param first_call] 绑定的时候是否进行调用一次，进行一次初始的触发
 ##[br] - [param default_value] 第一次触发的时候，如果还没有这个 [code]key[/code] 的数据则自动设置为这个默认值 
 func bind_method(key, callback: Callable, first_call: bool = false, default_value = null) -> void:
+	_binded_key_count[key] = _binded_key_count.get_or_add(key, 0) + 1
 	var callbacks : Array = _binded_method_dict.get_or_add(key, [])
 	callbacks.append(callback)
 	if not has_value(key) and typeof(default_value) !=  TYPE_NIL:
 		set_value(key, default_value)
 	if first_call:
 		callback.call(get_value(key, default_value))
+
+
+## 获取还未绑定的 Key
+func get_unbind_keys() -> Array:
+	var list := []
+	for key in _binded_key_count:
+		if _binded_key_count[key] == 0:
+			list.append(key)
+	return list
 
 
 ## 更新所有有关于绑定的节点的数据内容，从绑定的节点上获取数据，记录到当前数据缓存中。在退出程序前最好调用一次

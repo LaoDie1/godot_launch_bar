@@ -44,7 +44,7 @@
 ##move_state.trans_to_self()
 ##[/codeblock]
 class_name StateNode
-extends Node
+extends MyNode
 
 
 ## 进入当前状态

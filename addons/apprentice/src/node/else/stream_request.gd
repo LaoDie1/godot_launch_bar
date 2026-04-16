@@ -7,7 +7,7 @@
 #============================================================
 ## 流式获取数据请求
 class_name StreamRequest
-extends Node
+extends MyNode
 
 
 signal responded(body_chunk: PackedByteArray)

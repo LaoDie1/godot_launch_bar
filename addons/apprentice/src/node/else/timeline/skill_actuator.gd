@@ -40,7 +40,7 @@
 ##[/codeblock]
 ##
 class_name SkillActuator
-extends Node
+extends MyNode
 
 
 ## 新增技能

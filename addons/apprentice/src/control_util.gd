@@ -43,7 +43,7 @@ static func bind_click_event(node: Control, callable: Callable, flags: int = 0):
 	, flags)
 
 
-## 绑定 [TextEdit] 节点的按键输入，如果按下 Enter 键则触发 [param callback] 回调，这个方法不需要参数
+## 绑定 [TextEdit] 节点的按键输入，如果按下 Enter 键则触发 [param callback] 回调
 static func bind_textedit_submit_signal(
 	textedit: TextEdit, 
 	callback: Callable, 
@@ -62,7 +62,6 @@ static func bind_textedit_submit_signal(
 						or (event.alt_pressed and mask_key_flag & KEY_MASK_ALT == KEY_MASK_ALT)
 					):
 						callback.call()
-						textedit.accept_event()
 	)
 
 

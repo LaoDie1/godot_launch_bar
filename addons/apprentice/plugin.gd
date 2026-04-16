@@ -9,8 +9,8 @@ extends EditorPlugin
 
 static var instance: ApprenticePlugin
 
-var SyncFile = preload("res://addons/apprentice/@plugin_func/sync_file.gd").new()
-var CustomMenu = preload("res://addons/apprentice/@plugin_func/custom_menu.gd").new()
+var SyncFile = preload("res://addons/apprentice/@custom_menu/sync_file.gd").new()
+var CustomMenu = preload("res://addons/apprentice/@custom_menu/custom_menu.gd").new()
 
 var auto_upload_timer: Timer
 var resource_queue: Dictionary = {}
