@@ -23,6 +23,7 @@ static func get_max_physics_steps_per_frame() -> int:
 
 ## 获取当前世界的物理状态
 static func get_physics_direct_space_state_2d() -> PhysicsDirectSpaceState2D:
+	var root : Window = Engine.get_main_loop().root
 	var current_scene : Node2D = Engine.get_main_loop().current_scene as Node2D
 	var world : World2D = current_scene.get_world_2d()
 	return world.direct_space_state

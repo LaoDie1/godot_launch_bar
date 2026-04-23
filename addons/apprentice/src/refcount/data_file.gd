@@ -161,11 +161,11 @@ func set_value(key, value, force: bool = false, _emit_signal: bool = true) -> vo
 					var object : Object = item[0]
 					var property : String = item[1]
 					var handle_callback : Callable = item[3]
-					var condition : Callable = item[4]
+					var condition_callback : Callable = item[4]
 					if (typeof(object.get(property)) != typeof(value) 
 						or object.get(property) != value
 						or force
-						or (not condition.is_valid() or condition.call(value))
+						or (not condition_callback.is_valid() or condition_callback.call(value))
 					):
 						object.set(property, handle_callback.call(previous, value) if handle_callback.is_valid() else value)
 		# 更新绑定值的方法
@@ -181,14 +181,17 @@ var _key_to_id_method : Dictionary[int, Array] = {}  # id = [Callable...]
 
 ## 绑定这个节点，自动更新属性。他会自动绑定不同类型的 [Control] 节点的属性和信号。
 ##[br]
-##[br]- [param set_value_handle] 当前象的想法中对 [param object] 调用 [method Object.set] 修改其属性时，触发这个方法。[b]需要返回处理或原来的数据值[/b]
+##[br]- [param set_value_handle_callback] 对 [param object] 调用 [method set_value] 修改其绑定的 key 值时触发这个方法。
+##[b]需要返回处理或原来的数据值[/b]。这个方法需要有两个参数，第一个接收改变前的数据值，第二个参数接收当前的数据值
+##[br]- [param condition_callback] 在调用 [method set_value] 修改当前绑定的 [param object] 的属性时，是否进行修改的条件判断。
+##这个方法需要有一个参数接收修改时的数据
 func bind_object(
 	object: Object, 
 	key, 
 	default_value = null, 
 	property : String = "", 
-	set_value_handle : Callable = Callable(),
-	condition: Callable = Callable()
+	set_value_handle_callback : Callable = Callable(),
+	condition_callback: Callable = Callable()
 ) -> void:
 	_binded_key_count[key] = _binded_key_count.get_or_add(key, 0) + 1
 	
@@ -245,7 +248,7 @@ func bind_object(
 				printerr("这个节点不是自动绑定的类型，请传入 property 参数的值")
 	
 	if property:
-		_bind_node_data_dict.get_or_add(key, []).append([object, property, key, set_value_handle, condition])
+		_bind_node_data_dict.get_or_add(key, []).append([object, property, key, set_value_handle_callback, condition_callback])
 		if typeof(default_value) == TYPE_NIL:
 			set_value(key, get_value(key, object.get(property)), true)
 		else:

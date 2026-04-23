@@ -16,6 +16,7 @@ func _execute():
 				"map": {},
 				"object": {},
 				"prop": {},
+				"ui": {},
 			},
 		},
 		"test": {},

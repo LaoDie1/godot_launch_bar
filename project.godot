@@ -18,7 +18,6 @@ config/name="LaunchBar"
 config/description="启动条程序"
 run/main_scene="uid://c2aqgf2ybo2sv"
 config/use_custom_user_dir=true
-run/main_loop_type="Program"
 config/features=PackedStringArray("4.7", "Forward Plus")
 run/low_processor_mode=true
 boot_splash/bg_color=Color(1, 1, 1, 0)
@@ -39,9 +38,7 @@ Global="*uid://dcab8nn0xnj21"
 window/size/viewport_width=800
 window/size/viewport_height=300
 window/size/borderless=true
-window/size/always_on_top=true
 window/size/transparent=true
-window/size/extend_to_title=true
 window/size/sharp_corners=true
 window/size/minimize_disabled=true
 window/size/maximize_disabled=true
@@ -61,6 +58,7 @@ theme/default_font_generate_mipmaps=true
 [log]
 
 print_path=14
+display=31
 
 [rendering]
 

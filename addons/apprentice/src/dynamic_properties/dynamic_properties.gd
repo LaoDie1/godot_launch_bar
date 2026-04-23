@@ -61,13 +61,15 @@ func init(data: Dictionary, emit_signal: bool = true) -> void:
 		add(property, data[property], emit_signal)
 
 ## 新增属性
-func add(property, default = null, emit_signal: bool = true) -> PropertyItem:
+func add(property, default = null, emit_signal: bool = true, first_emit_signal: bool = true) -> PropertyItem:
 	if not _property_to_value_dict.has(property):
-		var item = PropertyItem.new(property, default)
+		var item := PropertyItem.new(property, default)
 		_property_to_value_dict[property] = item
 		newly_added_property.emit(item)
+		if first_emit_signal:
+			item.value_changed.emit.call_deferred(null, default)
 	if typeof(default) != TYPE_NIL:
-		_property_to_value_dict[property].set_value(default, emit_signal)
+		_property_to_value_dict[property].add_value(default, emit_signal)
 	return _property_to_value_dict[property]
 
 ## 移除属性

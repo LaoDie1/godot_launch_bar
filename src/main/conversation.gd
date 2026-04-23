@@ -174,7 +174,7 @@ func stop() -> void:
 ## 是否正在运行
 func is_running() -> bool:
 	if stream:
-		return _stream_request.is_connected
+		return _stream_request.is_connecting()
 	else:
 		return _http_request.get_http_client_status() == HTTPClient.STATUS_REQUESTING
 

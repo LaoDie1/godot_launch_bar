@@ -492,3 +492,12 @@ static func get_fill_array(size: int = 0, default_value = null) -> Array:
 	array.resize(size)
 	array.fill(default_value)
 	return array
+
+
+## 找到第一个对应 [param key] 值的数据。这个 key 不区分大小写和数据类型
+static func find_first_key_value(data: Dictionary, key: Variant) -> Variant:
+	var tmp_key = str(key).to_lower()
+	for k in data:
+		if str(k).to_lower() == key:
+			return data[k]
+	return null

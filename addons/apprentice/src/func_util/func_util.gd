@@ -322,10 +322,13 @@ static func execute_physics_frame(callback: Callable):
 
 ## 节点在场景中时信号才连接调用一次这个 [Callable]，如果节点已经在场景中，则直接调用 [Callable] 方法
 ##[br]
-##[br][code]_signal[/code]  信号
-##[br][code]callback[/code]  回调方法
-static func execute_once(_signal: Signal, callback: Callable):
-	_signal.connect(callback, Object.CONNECT_ONE_SHOT)
+##[br]- [param callback]  回调方法
+##[br]- [param _signal]  信号
+static func execute_once(callback: Callable, _signal: Signal = Signal()):
+	if _signal.is_null():
+		callback.call()
+	else:
+		_signal.connect(callback, Object.CONNECT_ONE_SHOT)
 
 
 ## 如果这个节点在场景时则直接调用这个方法，否则在节点发出 [signal Node.tree_entered] 信号后调用这个方法。
@@ -950,6 +953,7 @@ static func path_move(
 	next_condition: Callable,
 	ready_next_callback: Callable = Callable(),
 	end_condition: Callable = Callable(),
+	enabled_process_wait: bool = false,
 ) -> Array:
 	var last : Array = [start]
 	if ready_next_callback.is_valid():
@@ -961,6 +965,7 @@ static func path_move(
 	var next_pos
 	var condition_result: bool
 	var idx : int = 0
+	var start_time = Time.get_ticks_msec()
 	while true:
 		idx += 1
 		var next_points := {}
@@ -974,6 +979,9 @@ static func path_move(
 				):
 					next_points[next_pos] = null
 					pass_points[next_pos] = null
+			if enabled_process_wait and Time.get_ticks_msec() - start_time > 50:
+				await Engine.get_main_loop().process_frame
+				start_time = Time.get_ticks_msec()
 		
 		if end_condition.is_valid() and end_condition.call(last):
 			break
@@ -1153,10 +1161,13 @@ static func physics_frame(callable: Callable = Callable(), flags: int = 0) -> Si
 		Engine.get_main_loop().physics_frame.connect(callable, flags)
 	return Engine.get_main_loop().physics_frame
 
-static func process_frame(callable: Callable = Callable(), flags: int = 0) -> Signal:
+static func process_frame(callable: Callable = Callable(), flags: int = 0) -> Dictionary:
 	if callable.is_valid():
 		Engine.get_main_loop().process_frame.connect(callable, flags)
-	return Engine.get_main_loop().process_frame
+	return {
+		"signal": Engine.get_main_loop().process_frame,
+		"method": callable,
+	}
 
 
 ##  过滤数据
@@ -1509,9 +1520,30 @@ static func sort_points(points: Array) -> Array:
 	if points.is_empty():
 		return points
 	var point = points.pick_random()
-	return path_move(point, MathUtil.get_four_directions() if point is Vector2 else MathUtil.get_four_directions_i(),
+	return await path_move(point, MathUtil.get_four_directions() if point is Vector2 else MathUtil.get_four_directions_i(),
 		func(next_point):
 			if points.has(next_point):
 				return true
 			return false
 	)
+
+static var _custom_param_methods_dict : Dictionary[int, Callable] = {}
+## 获取自定义参数数量方法
+static func get_custom_param_method(param_count: int = 0) -> Callable:
+	assert(param_count >= 0, "参数数量必须超过0")
+	if not _custom_param_methods_dict.has(param_count):
+		var script = GDScript.new()
+		var params_str = ""
+		if param_count > 0:
+			params_str = "param"
+			for i in param_count - 1:
+				params_str += ", param_%s" % i
+		script.source_code = """extends Object
+
+static func method(%s):
+	pass
+""" % params_str
+		script.reload()
+		var object = script.new()
+		_custom_param_methods_dict[param_count] = object.method
+	return _custom_param_methods_dict[param_count]

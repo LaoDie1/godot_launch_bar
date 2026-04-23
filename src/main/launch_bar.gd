@@ -15,23 +15,58 @@ extends MarginContainer
 
 static var instance: LaunchBar
 
+var hot_key : WindowServer = null
+
+func set_main_visible(status: bool) -> void:
+	Engine.set_meta("visible", status)
+	var _root : Window = Engine.get_main_loop().root
+	# 必须要用计时器等待一点点时间才能成功处理焦点，否则可能刚显示出来系统还没处理结束，直接就处理焦点有时会失效
+	if status:
+		WindowServer.set_window_visible(_root, true)
+		Engine.get_main_loop().create_timer(0.2).timeout.connect(
+			func():
+				WindowServer.focus_window.call_deferred(_root)
+				_root.grab_focus()
+		)
+	else:
+		WindowServer.set_window_visible(_root, false)
+		_root.gui_release_focus()
+	Engine.get_meta("GLOBAL").visibility_changed.emit()
+
+
 func _init() -> void:
 	instance = self
 
 func _enter_tree() -> void:
+	# 热键。这里设置快捷键
+	hot_key = WindowServer.new()
+	hot_key.register_hotkey(KEY_CTRL, KEY_SPACE)
+	hot_key.hot_key_pressed.connect(
+		func(): 
+			set_main_visible(true)
+	)
+	
+	get_tree().auto_accept_quit = false
+	WindowServer.set_window_taskbar_icon_visible(get_tree().root, false)
 	get_tree().root.always_on_top = true
 	get_tree().root.wrap_controls = true
 	get_tree().root.extend_to_title = true
 	get_tree().root.close_requested.connect(
 		func():
-			Program.set_main_visible(false)
+			set_main_visible(false)
 			#quit() # 点击关闭按钮或按 Alt + F4 进行关闭退出
 	)
 	get_tree().root.focus_exited.connect(
 		func():
 			if Global.config.get_value("program/lose_focus_to_hide", true):
-				Program.set_main_visible(false)
+				set_main_visible(false)
 	)
+	get_tree().root.transient = true
+
+func _exit_tree():
+	hot_key.unregister_hotkey()
+	WindowServer.release_program_single()
+
 
 func _ready() -> void:
 	if not OS.has_feature("editor") and WindowServer.create_program_single():
@@ -90,20 +125,17 @@ func _ready() -> void:
 	)
 
 
-func _exit_tree() -> void:
-	WindowServer.release_program_single()
-
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		if event.keycode == KEY_ESCAPE:
-			Program.set_main_visible(false)
+			set_main_visible(false)
 		elif event.keycode == KEY_Q and event.ctrl_pressed:
 			get_tree().quit()
 
 ## 直接提交启动条中的文本内容
 func submit_message() -> void:
 	if input_text_box.text.strip_edges():
-		Program.set_main_visible(false)
+		set_main_visible(false)
 		Global.submitted_text.emit(input_text_box.text.strip_edges())
 		input_text_box.clear()
 		input_text_box.clear_undo_history()
@@ -124,7 +156,7 @@ func show_prompt(...content: Array) -> void:
 
 func _on_status_indicator_pressed(mouse_button: int, _mouse_position: Vector2i) -> void:
 	if mouse_button == MOUSE_BUTTON_LEFT:
-		Program.set_main_visible(true)
+		set_main_visible(true)
 
 func _on_drag_move_control_moved(diff: Vector2) -> void:
 	get_tree().root.position += Vector2i(diff)

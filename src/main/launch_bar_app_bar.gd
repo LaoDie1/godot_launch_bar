@@ -116,7 +116,8 @@ func _on_message_box_gui_input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		if (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER):
 			if event.pressed and message_box.text.strip_edges():
-				Program.set_main_visible(false)
+				if LaunchBar.instance:
+					LaunchBar.instance.set_main_visible(false)
 				Global.submitted_text.emit(message_box.text.strip_edges())
 				message_box.clear()
 			message_box.accept_event()

@@ -33,10 +33,8 @@ static func thread_execute_command(params: Array, callback: Callable):
 
 ## 执行CMD命令
 static func execute_command(params: Array) -> String:
-	var p = ["/C"]
-	p.append_array(params)
 	var output: Array = []
-	var error = OS.execute("CMD.exe", p, output, true)
+	var error = OS.execute("CMD.exe", ["/C", " ".join(params)], output, true)
 	return output[0]
 
 ## 查找系统配置程序的可执行文件位置

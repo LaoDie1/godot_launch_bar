@@ -25,7 +25,8 @@ func _ready():
 				button.add_child(button.window)
 			button._put_message(content)
 			# 通过这个方式进入的将主窗口隐藏
-			Program.set_main_visible(false)
+			if LaunchBar.instance:
+				LaunchBar.instance.set_main_visible(false)
 	)
 
 

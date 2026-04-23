@@ -609,9 +609,14 @@ static func get_script_class_structure() -> Dictionary:
 	return __global_class_struct__
 
 ## 获取脚本子类的字典
-static func get_script_child_class_dict() -> Dictionary:
+static func get_child_script_class_dict() -> Dictionary:
 	__init_script_class_structure__()
 	return __global_child_class_dict__
+
+static func get_child_script_class(parent_class_name: String) -> Array:
+	var dict = get_child_script_class_dict()
+	return dict.get(parent_class_name, [])
+
 
 ## 是否继承自这个类
 static func is_extends_of(script: Script, parent_class: Script) -> bool:

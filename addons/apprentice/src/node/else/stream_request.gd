@@ -10,17 +10,19 @@ class_name StreamRequest
 extends MyNode
 
 
-signal responded(body_chunk: PackedByteArray)
-signal responded_error(status: HTTPClient.Status)
-signal connected  ## 已连接
-signal connect_closed  ##连接关闭
-signal received_headers(headers: Dictionary) # 收到响应头
+signal responded(body_chunk: PackedByteArray) ##响应数据中
+signal responded_error(status: HTTPClient.Status)  ##响应出现错误
+signal connect_closed   ##连接关闭
+signal connected  ##连接成功并结束
+signal received_headers(headers: Dictionary) ##收到响应头
+signal redirected(redirect_url: String)  ##重定向
 
-var http_client : HTTPClient = HTTPClient.new()
-var is_connected : bool = false
-var has_received_headers : bool = false
+var _http_client : HTTPClient = HTTPClient.new()
+var _connected_status : bool = false  #是否已经连接
+var _has_received_headers : bool = false
 
-func request(url: String, headers: PackedStringArray = PackedStringArray(), method: HTTPClient.Method = 0, request_body: String = "") -> void:
+
+func request(url: String, headers: PackedStringArray = PackedStringArray(), method: HTTPClient.Method = 0, request_body: String = "") -> int:
 	var url_parts = url.split("://")
 	var protocol : String = url_parts[0]  # "https" 或 "http"
 	var host_and_path = url_parts[1].split("/", true, 1)
@@ -35,34 +37,45 @@ func request(url: String, headers: PackedStringArray = PackedStringArray(), meth
 	var tls_options = TLSOptions.client() if protocol == "https" else null
 	
 	# 连接到主机
-	var error : int = http_client.connect_to_host(host, port, tls_options)
+	_http_client.close()
+	var error : int = _http_client.connect_to_host(host, port, tls_options)
 	if error != OK:
 		push_error("Failed to connect to host: ", error)
-		responded_error.emit(http_client.get_status())
-		return
+		responded_error.emit(_http_client.get_status())
+		return error
 
 	# 等待连接完成
-	while http_client.get_status() == HTTPClient.STATUS_CONNECTING or http_client.get_status() == HTTPClient.STATUS_RESOLVING:
-		http_client.poll()
-		#await get_tree().process_frame
-		OS.delay_msec(100)
+	_call_method(
+		func():
+			var http_status: HTTPClient.Status = HTTPClient.STATUS_CONNECTING
+			while http_status == HTTPClient.STATUS_CONNECTING or http_status == HTTPClient.STATUS_RESOLVING:
+				_http_client.poll()
+				await get_tree().create_timer(0.1).timeout
+				#OS.delay_msec(100)
+				http_status = _http_client.get_status()
+			
+			if _http_client.get_status() != HTTPClient.STATUS_CONNECTED:
+				push_error("Failed to connect to host. Status: ", _http_client.get_status())
+				responded_error.emit(_http_client.get_status())
+				return _http_client.get_status()
+			
+			error = _http_client.request(method, path, headers, request_body)
+			if error != OK:
+				push_error("Failed to send request: ", error, "  ", error_string(error))
+				responded_error.emit(_http_client.get_status())
+				return error
+			
+			# 开始读取流式响应
+			_has_received_headers = false
+			_connected_status = true
+			set_process(true)
+	)
+	
+	return OK
 
-	if http_client.get_status() != HTTPClient.STATUS_CONNECTED:
-		push_error("Failed to connect to host. Status: ", http_client.get_status())
-		responded_error.emit(http_client.get_status())
-		return
-	
-	error = http_client.request(method, path, headers, request_body)
-	if error != OK:
-		push_error("Failed to send request: ", error, "  ", error_string(error))
-		responded_error.emit(http_client.get_status())
-		return
-	
-	# 开始读取流式响应
-	has_received_headers = false
-	is_connected = true
-	set_process(true)
-	connected.emit()
+func _call_method(method: Callable) -> void:
+	method.call()
+
 
 func _init() -> void:
 	name = "StreamRequest"
@@ -70,39 +83,59 @@ func _init() -> void:
 func _ready() -> void:
 	set_process(false)
 
+func is_connecting() -> bool:
+	return _connected_status
+
+var _last_headers: Dictionary
 func _process(delta):
-	if not is_connected:
+	if not _connected_status:
 		return
 	
-	http_client.poll()
-	match http_client.get_status():
+	_http_client.poll()
+	match _http_client.get_status():
 		HTTPClient.STATUS_BODY:
 			# 🔥 修正逻辑：如果还没读取过 Header，先读取 Header
-			if not has_received_headers:
-				has_received_headers = true
-				var headers = http_client.get_response_headers_as_dictionary()
-				received_headers.emit(headers)
+			if not _has_received_headers:
+				_has_received_headers = true
+				_last_headers = _http_client.get_response_headers_as_dictionary()
+				received_headers.emit(_last_headers)
+				# 处理重定向
+				for key in _last_headers:
+					if str(key).to_lower() == "location":
+						set_process(false)
+						_http_client.close()
+						_connected_status = false
+						var redirect_url : String = _last_headers[key]
+						request(redirect_url)
+						redirected.emit(redirect_url)
+						return
+				return
 			
 			# 读取流式数据
-			var chunk = http_client.read_response_body_chunk()
+			var chunk = _http_client.read_response_body_chunk()
 			if chunk.size() > 0:
 				responded.emit(chunk)
 		
-		HTTPClient.STATUS_DISCONNECTED, HTTPClient.STATUS_CONNECTED:
+		HTTPClient.STATUS_DISCONNECTED:
 			close()
+		
+		HTTPClient.STATUS_CONNECTED:
+			close()
+			connected.emit()
 		
 		HTTPClient.STATUS_REQUESTING:
 			pass
 		
 		_:
-			print_debug(http_client.get_status())
-			responded_error.emit(http_client.get_status())
+			print_debug(_http_client.get_status())
+			responded_error.emit(_http_client.get_status())
 			close()
 
 
 func close():
 	# 连接关闭
-	if is_connected:
-		is_connected = false
+	if _connected_status:
+		_connected_status = false
 		connect_closed.emit()
-	http_client.close()
+	set_process(false)
+	_http_client.close()

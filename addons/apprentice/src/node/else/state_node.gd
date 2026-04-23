@@ -19,15 +19,12 @@
 ##    MOVE,
 ##    JUMP,
 ##}
-##[/codeblock]
 ##
-##[br]添加状态
-##[codeblock]
-##var idle_state = state_root.add_state(States.IDLE)
-##var move_state = state_root.add_state(States.MOVE)
-##var jump_state = state_root.add_state(States.JUMP)
+##@onready var idle_state : StateNode = state_root.add_state(States.IDLE)
+##@onready var move_state : StateNode = state_root.add_state(States.MOVE)
+##@onready var jump_state : StateNode = state_root.add_state(States.JUMP)
 ### 或者
-##var state_list = state_root.add_multi_states(States.values())
+##@onready var state_list = state_root.add_multi_states(States.values())
 ##[/codeblock]
 ##
 ##[br]启动或切换状态
@@ -35,8 +32,8 @@
 ### 启动 idle 状态
 ##state_root.enter_child_state(States.IDLE)
 ##
-###### 切换到 Move 状态的几种方式 ####
-### idle 状态切换到 Move 状态
+### === 切换到 Move 状态的几种方式 ===
+### Idle 状态切换到 Move 状态
 ##idle_state.trans_to(States.MOVE)
 ### 或者 state_root 对子状态进行切换，切换到 Move 状态
 ##state_root.trans_to_child(State.Move)
@@ -57,17 +54,23 @@ signal exited_state
 signal child_state_entered(state_name)
 ## 子节点退出状态
 signal child_state_exited(state_name)
-## 状态发生切换。[code]previous[/code]上个状态名称，[code]current[/code]当前状态名，
-##[code]data[/code]当前状态进入时传入的数据
-signal child_state_changed(previous, current)
+## 状态发生切换。[param previous_state_name] 上个状态名称，[param current_state_name] 当前状态名
+signal child_state_changed(previous_state_name, current_state_name)
 
 ## 新增状态
 signal newly_added_state(state_name)
 ## 移除状态
 signal removed_state(state_name)
 
+## 自动扫描子节点。如果子节点是 [StateNode] 类型的节点，则会自动注册为子状态节点
+@export var auto_scan_children: bool = true
 
-var _root_state : StateNode # 根节点状态
+var _root_state : StateNode: # 根节点状态
+	set(v):
+		if _root_state:
+			_root_state.set_physics_process(false)
+		_root_state = v
+		_root_state.set_physics_process(true)
 var _state_name # 当前状态名称
 var _parent_state : StateNode # 父状态节点
 var _name_to_state_node : Dictionary = {} # 名称对应的状态节点
@@ -95,7 +98,7 @@ func get_current_child_state():
 
 ## 是否和当前状态相同
 func equals_current_child_state(state_name) -> bool:
-	return typeof(_current_child_state) == typeof(state_name) and _current_child_state == state_name
+	return str(_current_child_state) == str(state_name)
 
 ## 获取当前运行的状态子节点
 func get_current_child_state_node() -> StateNode:
@@ -114,10 +117,7 @@ func get_parent_state() -> StateNode:
 ## 当前状态是否正在运行中
 func is_running() -> bool:
 	return (_root_state == self 
-		or (
-			_parent_state.is_running()
-			and _parent_state.equals_current_child_state(self._state_name)
-		)
+		or (_parent_state.is_running() and _parent_state.equals_current_child_state(self._state_name))
 	)
 
 ## 获取根节点状态
@@ -130,17 +130,19 @@ func get_self_state_name():
 
 ## 查找子状态节点
 ##[br]
-##[br][code]state_name[/code]  状态名
+##[br][code]state_name[/code]  状态名，注意大小写和注册时的状态名保持一致
 ##[br][code]from_parent[/code]  从这个状态开始。不传入默认为当前根节点
 ##[br][code]return[/code]  返回找到的状态节点
-func find_state_node(state_name, from_parent: StateNode = null) -> StateNode:
-	if from_parent == null:
-		from_parent = _root_state
+func find_state_node(state_name) -> StateNode:
+	return _find_state_node(state_name, _root_state)
+
+func _find_state_node(state_name, from_parent: StateNode) -> StateNode:
+	assert(from_parent != null, "父状态节点不能为空")
 	if from_parent.has_state(state_name):
-		return get_state_node(state_name)
+		return from_parent.get_state_node(state_name)
 	var state_node : StateNode
-	for child_state_name in get_state_name_list():
-		state_node = find_state_node(state_name, get_state_node(child_state_name))
+	for child_state_name in from_parent.get_state_name_list():
+		state_node = _find_state_node(state_name, from_parent.get_state_node(child_state_name))
 		if state_node != null:
 			return state_node
 	return null
@@ -189,25 +191,32 @@ func get_entered_frames() -> int:
 #============================================================
 #  内置
 #============================================================
+func state_process(delta):
+	_state_process(delta)
+	if _current_child_state:
+		get_current_child_state_node().state_process(delta)
+	self.state_processed.emit()
+
 func _notification(what):
 	match what:
 		NOTIFICATION_PHYSICS_PROCESS:
-			if is_running():
-				_state_process(get_physics_process_delta_time())
-				self.state_processed.emit()
+			if self == _root_state:
+				state_process(get_physics_process_delta_time())
 		
 		NOTIFICATION_ENTER_TREE:
-			set_physics_process(false)
-			set_process(false)
 			# 自动判断是否是状态根节点
 			var p = self
 			while p is StateNode:
 				_root_state = p
 				p = p.get_parent()
+			if auto_scan_children:
+				for child in get_children():
+					if child is StateNode:
+						register_state(child.name, child)
 		
 		NOTIFICATION_READY:
-			set_physics_process(false)
-			set_process(false)
+			set_physics_process.call_deferred(_root_state == self)
+			set_process.call_deferred(_root_state == self)
 			# 是根节点时自动进入这个状态
 			if _root_state == self:
 				enter_state({})
@@ -217,29 +226,30 @@ func _notification(what):
 #  自定义
 #============================================================
 ## 注册状态
-func register_state(state_name, state_node: StateNode) -> void:
-	assert(not _name_to_state_node.has(state_name), "已经添加过 " + str(state_name) + " 状态")
-	
-	# 连接信号
-	state_node.entered_state.connect( 
-		self.child_state_entered.emit.bind( state_name ) 
-	)
-	state_node.exited_state.connect( 
-		self.child_state_exited.emit.bind( state_name ) 
-	)
-	
-	# 存储数据
-	_name_to_state_node[state_name] = state_node
-	state_node._parent_state = self
-	state_node._state_name = state_name
-	
-	self.newly_added_state.emit(state_name)
+func register_state(state_name, state_node: StateNode) -> bool:
+	if not _name_to_state_node.has(state_name):
+		# 连接信号
+		state_node.entered_state.connect( self.child_state_entered.emit.bind( state_name ) )
+		state_node.exited_state.connect( self.child_state_exited.emit.bind( state_name ) )
+		
+		# 存储数据
+		_name_to_state_node[state_name] = state_node
+		state_node._parent_state = self
+		state_node._state_name = state_name
+		
+		self.newly_added_state.emit(state_name)
+		return true
+	else:
+		printerr("已经添加过 " + str(state_name) + " 状态，添加失败")
+		return false
 
 
 ## 添加状态
 ##[br]
-##[br][code]state[/code]  状态名。可以是任意类型
-##[br][code]state_node[/code]  指定的状态节点
+##[br]- [param state_name]  状态名。可以是任意类型
+##[br]- [param state_node]  指定的状态节点
+##[br]- [param auto_add_node]  如果这个状态还没有添加到场景树中，则自动添加
+##[br]
 ##[br][code]return[/code]  返回添加的状态节点
 func add_state(state_name, state_node: StateNode = null, auto_add_node: bool = true) -> StateNode:
 	if not has_state(state_name):
@@ -258,7 +268,7 @@ func get_state_or_add(state_name, state_node: StateNode = null, auto_add_node: b
 
 ## 添加状态数据
 ##[br]
-##[br][code]name_to_node[/code]  状态名对应的状态节点
+##[br][param name_to_node]  状态名对应的状态节点
 func add_state_data(name_to_node: Dictionary):
 	for state_name in name_to_node:
 		add_state(state_name, name_to_node[state_name])
@@ -266,7 +276,8 @@ func add_state_data(name_to_node: Dictionary):
 
 ## 添加多个状态节点
 ##[br]
-##[br][code]list[/code]  状态名列表
+##[br][param list]  状态名列表
+##[br]
 ##[br][code]return[/code]  返回对应状态节点列表
 func add_multi_states(list: Array) -> Array[StateNode]:
 	var nodes : Array[StateNode] = []
@@ -375,7 +386,7 @@ func global_trans_to(state_name, data: Dictionary) -> void:
 ##请使用父状态的 [method trans_to_child] 方法或 [method trans_to_self] 方法切换到
 ##当前这个状态。
 ##[br]
-##[br][code]data[/code]  进入时的数据。可使用 [method get_last_data] 获取这个数据
+##[br][param data]  进入时的数据。可使用 [method get_last_data] 获取这个数据
 func enter_state(data: Dictionary) -> void:
 	assert(self.is_inside_tree(), "状态还未添加到节点树中")
 	
@@ -384,15 +395,14 @@ func enter_state(data: Dictionary) -> void:
 	
 	set_physics_process(true)
 	set_process(true)
-	_enter_state(data)
+	_enter_state()
 	self.entered_state.emit()
 
 ## 退出当前状态
 func exit_state() -> void:
-	if not is_inside_tree():
-		await ready
+	assert(self.is_inside_tree(), "状态还未添加到节点树中")
 	assert(_root_state != self, "根状态节点不能退出")
-	assert(is_running(), "状态还未启动，不能退出状态")
+	assert(is_running(), "退出前状态必须是启动的")
 	
 	exit_child_state()
 	
@@ -404,7 +414,7 @@ func exit_state() -> void:
 
 
 ## 虚方法，专门用于重写
-func _enter_state(data: Dictionary):
+func _enter_state():
 	pass
 
 ## 虚方法，专门用于重写

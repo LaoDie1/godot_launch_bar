@@ -143,6 +143,13 @@ class AgentSprite3D extends AbstractAgentSprite:
 	func get_host() -> Sprite3D:
 		return super.get_host() as Sprite3D
 
+class AgentTextureRect extends AbstractAgentSprite:
+	func get_host() -> Sprite3D:
+		return super.get_host() as Sprite3D
+	
+	func get_size():
+		return super.get_host().size
+
 
 #============================================================
 #  实现功能
@@ -150,7 +157,7 @@ class AgentSprite3D extends AbstractAgentSprite:
 signal played(animation: StringName)
 
 ## 播放动画的目标节点
-@export_node_path("AnimatedSprite2D", "AnimatedSprite3D", "AnimationPlayer", "Sprite2D", "Sprite3D")
+@export_node_path("AnimatedSprite2D", "AnimatedSprite3D", "Sprite2D", "Sprite3D", "TextureRect", "AnimationPlayer", )
 var target : NodePath :
 	set(v):
 		target = v
@@ -176,6 +183,9 @@ func set_target(node: Node):
 		_agent = AgentSprite2D.new(node)
 	elif node is Sprite3D:
 		_agent = AgentSprite3D.new(node)
+	elif node is TextureRect:
+		_agent = AgentTextureRect.new(node)
+
 
 ## 获取目标节点
 func get_target() -> Node:

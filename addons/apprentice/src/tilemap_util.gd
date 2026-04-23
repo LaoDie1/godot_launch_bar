@@ -455,7 +455,7 @@ static func pre_simplify_tile_path(tiles: Array) -> Array[Vector2i]:
 
 
 ## 路径平滑。- [param tolerance] 平滑度，值越大平滑度越高
-static func simplify_path(path: PackedVector2Array, tolerance: float) -> PackedVector2Array:
+static func simplify_path(path: Array, tolerance: float) -> Array:
 	if path.size() <= 2: return path
 	var max_dist = 0.0
 	var max_idx = 0
@@ -471,7 +471,7 @@ static func simplify_path(path: PackedVector2Array, tolerance: float) -> PackedV
 		var right = simplify_path(path.slice(max_idx, path.size()), tolerance)
 		return left.slice(0, left.size()-1) + right
 	else:
-		return PackedVector2Array([start, end])
+		return [start, end]
 
 static func _point_to_line_distance(point: Vector2, line_start: Vector2, line_end: Vector2) -> float:
 	var line_vec = line_end - line_start
@@ -650,15 +650,19 @@ static func get_border_coords_list(
 			start_p -= directions[0]
 			break
 	
-	return FuncUtil.path_move(
+	var ps : Array = []
+	FuncUtil.path_move(
 		start_p, directions,
 		func(point) -> bool:
 			if p_set.has(point):
 				for dir in directions:
 					if not p_set.has(point + dir):
+						# 周围有的地方不存在瓦片，则这个瓦片视为边缘瓦片
+						ps.append(point)
 						return true
 			return false
 	)
+	return ps
 
 
 ## 获取内部的坐标列表
@@ -819,39 +823,82 @@ static func sort_border_points(border_points: Array, dirs: Array = []) -> Array:
 	else:
 		dirs = dirs.map(func(v): return Vector2i(v))
 	
-	var last_points : Array = []
 	var point_set := HashSet.new(border_points)
 	var start_point = border_points[0]
-	var current_point = start_point
+	
+	# 找到路径上的点
 	var visited := HashSet.new()
-	var points : Array = [current_point]
+	var current_point = start_point
+	var points_stack : Array = [current_point]
+	var has_point: bool = false
+	var all_point_set := HashSet.new()
+	all_point_set.append(current_point)
+	var last_points : Array 
 	var tmp_point
+	for __ in 2:
+		last_points = []
+		while true:
+			has_point = false
+			visited.append(current_point)
+			for dir in dirs:
+				tmp_point = current_point + dir
+				if not visited.has(tmp_point):
+					if point_set.has(tmp_point):
+						current_point = tmp_point
+						points_stack.append(current_point)
+						has_point = true
+						break # 结束当前位置点的判断
+			
+			if not has_point:
+				# 当前这个点到末尾了时
+				if last_points.size() < points_stack.size():
+					last_points = points_stack.duplicate()
+					all_point_set.append_array(points_stack)
+				if points_stack.size() > 0:
+					current_point = points_stack.pop_back()
+				else:
+					break
+		
+		points_stack = []
+		if last_points:
+			current_point = last_points[-1]
+	
+	# 重新理顺
+	var around_point_count : int = 0 
+	for point in all_point_set.get_data():
+		around_point_count = 0
+		for dir in dirs:
+			if all_point_set.has(point + dir):
+				around_point_count += 1
+		if around_point_count == 1:
+			start_point = point
+			break
+	visited.clear()
+	last_points = [start_point]
+	current_point = start_point
+	var final_points: Array = []
 	while true:
+		has_point = false
+		visited.append(current_point)
+		#if current_point == Vector2i(205, -136):
+			#breakpoint
 		for dir in dirs:
 			tmp_point = current_point + dir
-			if not visited.has(tmp_point):
-				visited.append(tmp_point)
-				if point_set.has(tmp_point):
-					current_point = tmp_point
-					points.append(current_point)
-					if last_points.size() < points.size():
-						last_points = points.duplicate()
-					break
-			else:
-				# 当到达了刚开始的点的时候
-				if tmp_point == start_point:
-					if last_points.size() < points.size():
-						points.append(tmp_point)
-						return points
-					else:
-						last_points.append(tmp_point)
-						return last_points
-		if current_point != tmp_point:
-			if points.size() > 1:
-				current_point = points.pop_back()
+			if all_point_set.has(tmp_point) and not visited.has(tmp_point):
+				current_point = tmp_point
+				last_points.append(current_point)
+				has_point = true
+				if not final_points.is_empty():
+					final_points.pop_back()
+				break
+		if not has_point:
+			if last_points:
+				current_point = last_points.pop_back()
+				final_points.append(current_point)
 			else:
 				break
-	return points
+	return final_points
+
 
 
 ## 选取位置中间的瓦片（最快，99% 概率不会选到区域外的点）
@@ -891,7 +938,7 @@ static func get_most_popular_point(tile_coords: Array) -> Vector2i:
 ## 膨胀/收缩轮廓点
 ##[br]
 ##[br]- [param input_points]: 单个颜色区域的所有通行瓦片坐标
-##[br]- [param operation_level]: 收缩膨胀级别。超过 0 则为膨胀，小于 0 则为收缩
+##[br]- [param operation_level]: 收缩/膨胀幅度。超过 0 则为膨胀，小于 0 则为收缩
 ##[br]- [param connect_type]: 连通类型 4=4方向 8=8方向（默认8）
 ##[br]返回值：[code]Array[Array][/code]，每个元素是一个独立巡逻块的闭合路线
 static func offset_contour(
@@ -1136,3 +1183,58 @@ static func _find_top_left_edge(edge_points: Dictionary) -> Vector2i:
 			min_x = p.x
 			start = p
 	return start
+
+
+## 均匀点采样（固定步长点采样）。采样完后的点是排好序的。
+static func uniform_point_sampling(points: Array, max_length) -> Array:
+	assert( max_length is int or max_length is float, "max_length 参数的值需要是数字类型" )
+	
+	# 点对齐
+	var point_table : Dictionary[Variant, Array] = {}  #对齐的点对应的点数组
+	var align_point
+	max_length = int(max_length)
+	for point in points:
+		align_point = point / max_length  #将点对齐，这个记录这个网格范围的存在的点，按照 max_length 进行划分网格
+		point_table.get_or_add(align_point, []).append(point)
+	
+	# 对齐的点进行深度搜索排序
+	var dirs : Array
+	if points[0] is Vector2:
+		dirs = MathUtil.get_eight_directions()
+	elif points[0] is Vector2i:
+		dirs = MathUtil.get_eight_directions_i()
+	var current_align_point = points[0] / max_length
+	var align_point_stack : Array = [current_align_point]
+	var max_size_points: Array = []
+	var visited: Dictionary = {}
+	var find_status: bool = false
+	var tmp_align_point
+	var not_dir = Vector2.ZERO if points[0] is Vector2 else Vector2i.ZERO
+	while true:
+		visited[current_align_point] = null
+		find_status = false
+		for dir in dirs:
+			if dir != not_dir:
+				tmp_align_point = current_align_point + dir
+				if not visited.has(tmp_align_point) and point_table.has(tmp_align_point):
+					find_status = true
+					current_align_point = tmp_align_point
+					align_point_stack.append(current_align_point)
+					if max_size_points.size() < align_point_stack.size():
+						max_size_points = align_point_stack.duplicate()
+					break
+		
+		# 如果没有找到，则弹出最后一个重新找
+		if not find_status:
+			current_align_point = align_point_stack.pop_back()
+			if align_point_stack.is_empty():
+				break
+		if align_point_stack.size() > 1:
+			not_dir = Vector2(align_point_stack[-1] - align_point_stack[-2]).normalized()
+			if points[0] is Vector2i:
+				not_dir = Vector2i(not_dir)
+	
+	var list : Array = []
+	for point_key in max_size_points:
+		list.append(point_table[point_key].pick_random())
+	return list

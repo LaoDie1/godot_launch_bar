@@ -11,15 +11,9 @@ class_name HashSet
 var _data : Dictionary = {}
 
 
-func _init(value = null) -> void:
-	if typeof(value) != TYPE_NIL:
-		if value is Array:
-			append_array(value)
-		elif value is HashSet:
-			append_array(value.to_array())
-		else:
-			for item in value:
-				append(item)
+func _init(iterator = null) -> void:
+	if typeof(iterator) != TYPE_NIL:
+		append_iterator(iterator)
 
 func _to_string():
 	return "<%s#%s>" % ["HashSet", get_instance_id()]
@@ -108,6 +102,9 @@ func pick_random():
 func get_data() -> Dictionary:
 	return _data
 
+func get_index_value(index: int) -> Variant:
+	return _data.keys()[index]
+
 
 ## 是否相同
 func equals(hash_set: HashSet) -> bool:
@@ -182,6 +179,11 @@ func subtraction(hash_set: HashSet) -> HashSet:
 			list.append(item)
 	return HashSet.create_from_iterator(list)
 
+func _get(property):
+	if property.is_valid_int():
+		var items = _data.keys()
+		return items[int(property)]
+	return null
 
 #============================================================
 #  迭代器

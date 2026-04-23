@@ -16,6 +16,8 @@ enum UpdateProperty{
 	GLOBAL_POSITION,
 }
 
+@export var enabled_drag: bool = true
+@export var enabled_scale: bool = true
 ## 当前缩放
 @export var current_zoom_scale : float = 0:
 	set(v):
@@ -50,20 +52,22 @@ func _ready():
 
 func _input(event):
 	if event is InputEventMouseMotion:
-		if dragging:
+		if enabled_drag and dragging:
 			camera[_update_property] = last_camera_pos + -(camera.get_global_mouse_position() - last_mouse_pos)
 			last_mouse_pos = camera.get_global_mouse_position()
 			last_camera_pos = camera[_update_property]
 	elif event is InputEventMouseButton:
-		var control = get_tree().root.gui_get_focus_owner()
-		if control and control.get_global_rect().has_point(get_global_mouse_position()):
-			return
-		if event.button_index == MOUSE_BUTTON_MIDDLE:
-			dragging = event.pressed
-			last_mouse_pos = camera.get_global_mouse_position()
-			last_camera_pos = camera[_update_property]
+		if enabled_drag:
+			var control = get_tree().root.gui_get_focus_owner()
+			if control and control.get_global_rect().has_point(get_global_mouse_position()):
+				return
+			if event.button_index == MOUSE_BUTTON_MIDDLE:
+				dragging = event.pressed
+				last_mouse_pos = camera.get_global_mouse_position()
+				last_camera_pos = camera[_update_property]
 	
-	var down_or_up = InputUtil.get_mouse_wheel(event)
-	if down_or_up != 0:
-		current_zoom_scale -= 0.5 * down_or_up
+	if enabled_scale:
+		var down_or_up = InputUtil.get_mouse_wheel(event)
+		if down_or_up != 0:
+			current_zoom_scale -= 0.5 * down_or_up
 	
